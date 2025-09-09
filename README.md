@@ -114,10 +114,14 @@ If you find FoloUp helpful, please consider giving us a star on GitHub! It helps
 
 ## Products built on top of FoloUp 🚀
 
-<div align="left">
-  <a href="https://talvin.ai/" target="_blank">
+<div style="display: flex; flex-direction: row; gap: 40px; align-items: center;">
+  <a href="https://talvin.ai/" target="_blank" style="text-align: center; text-decoration: none;">
     <img src="https://pbs.twimg.com/profile_images/1910041959508422656/OEnXp-kO_400x400.jpg" alt="Talvin AI Logo" height="100" style="border-radius: 20%;">
     <p>Talvin AI</p>
+  </a>
+  <a href="https://tryrapidscreen.com/" target="_blank" style="text-align: center; text-decoration: none;">
+    <img src="https://media.licdn.com/dms/image/v2/D4E0BAQGbqXmQPuIQ2Q/company-logo_200_200/B4EZaWsDTcHcAM-/0/1746284852800/tryhiregenius_logo?e=1760572800&v=beta&t=IbbKmLlkeyyLNs9ZeQU4l28FBbcNJvUtaeefJhkOUE0" alt="Rapidscreen Logo" height="100" style="border-radius: 20%;">
+    <p>Rapidscreen</p>
   </a>
 </div>
 
