@@ -39,7 +39,8 @@ export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
         {Object.values(SatisfactionLevel).map((emoji) => (
           <button
             key={emoji}
-            className={`text-3xl ${satisfaction === emoji ? "border-2 border-indigo-600" : ""}`}
+            type="button"
+            className={`text-3xl ${satisfaction === emoji ? "border-2 border-orange-600" : ""}`}
             onClick={() => setSatisfaction(emoji)}
           >
             {emoji}
@@ -54,7 +55,7 @@ export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
       />
       <Button
         disabled={satisfaction === null && feedback.trim() === ""}
-        className="w-full bg-indigo-600 text-white"
+        className="w-full bg-orange-600 text-white"
         onClick={handleSubmit}
       >
         Submit Feedback

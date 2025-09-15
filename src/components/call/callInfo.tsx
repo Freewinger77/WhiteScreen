@@ -170,7 +170,7 @@ function CallInfo({
               <div>
                 <div className="flex justify-between items-center pb-4 pr-2">
                   <div
-                    className=" inline-flex items-center text-indigo-600 hover:cursor-pointer"
+                    className=" inline-flex items-center text-orange-600 hover:cursor-pointer"
                     onClick={() => {
                       router.push(`/interviews/${interviewId}`);
                     }}
@@ -264,7 +264,7 @@ function CallInfo({
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
 
                           <AlertDialogAction
-                            className="bg-indigo-600 hover:bg-indigo-800"
+                            className="bg-orange-600 hover:bg-orange-800"
                             onClick={async () => {
                               await onDeleteResponseClick();
                             }}
@@ -306,9 +306,9 @@ function CallInfo({
                     <CircularProgress
                       classNames={{
                         svg: "w-28 h-28 drop-shadow-md",
-                        indicator: "stroke-indigo-600",
-                        track: "stroke-indigo-600/10",
-                        value: "text-3xl font-semibold text-indigo-600",
+                        indicator: "stroke-orange-600",
+                        track: "stroke-orange-600/10",
+                        value: "text-3xl font-semibold text-orange-600",
                       }}
                       value={analytics?.overallScore}
                       strokeWidth={4}
@@ -337,9 +337,9 @@ function CallInfo({
                     <CircularProgress
                       classNames={{
                         svg: "w-28 h-28 drop-shadow-md",
-                        indicator: "stroke-indigo-600",
-                        track: "stroke-indigo-600/10",
-                        value: "text-3xl font-semibold text-indigo-600",
+                        indicator: "stroke-orange-600",
+                        track: "stroke-orange-600/10",
+                        value: "text-3xl font-semibold text-orange-600",
                       }}
                       value={analytics?.communication.score}
                       maxValue={10}

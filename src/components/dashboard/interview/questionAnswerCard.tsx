@@ -15,7 +15,7 @@ function QuestionAnswerCard({
     <>
       <div className=" shadow-md mb-2 bg-slate-50 rounded-2xl py-2">
         <div className="flex flex-row items-center	">
-          <CardTitle className="text-lg min-w-[42px] bg-indigo-200 rounded-full p-1 mx-3">
+          <CardTitle className="text-lg min-w-[42px] bg-orange-200 rounded-full p-1 mx-3">
             <p className="my-auto text-center">{questionNumber}</p>
           </CardTitle>
           <div className="flex flex-col p-1">

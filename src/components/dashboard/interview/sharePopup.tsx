@@ -103,7 +103,7 @@ function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
                   />
                 </div>
                 <Button
-                  className="flex items-center bg-indigo-600"
+                  className="flex items-center bg-orange-500"
                   onClick={copyLinkToClipboard}
                 >
                   <Copy size={16} className="mr-2" />
@@ -158,7 +158,7 @@ function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
                   </div>
                 </div>
                 <Button
-                  className="flex items-center bg-indigo-600"
+                  className="flex items-center bg-orange-500"
                   onClick={copyEmbedToClipboard}
                 >
                   <Copy size={16} className="mr-2" />

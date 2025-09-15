@@ -283,7 +283,7 @@ function Call({ interview }: InterviewProps) {
           <div>
             <div className="m-4 h-[15px] rounded-lg border-[1px]  border-black">
               <div
-                className=" bg-indigo-600 h-[15px] rounded-lg"
+                className=" bg-orange-500 h-[15px] rounded-lg"
                 style={{
                   width: isEnded
                     ? "100%"
@@ -304,7 +304,7 @@ function Call({ interview }: InterviewProps) {
               {!isEnded && (
                 <div className="flex mt-2 flex-row">
                   <AlarmClockIcon
-                    className="text-indigo-600 h-[1rem] w-[1rem] rotate-0 scale-100  dark:-rotate-90 dark:scale-0 mr-2 font-bold"
+                    className="text-orange-500 h-[1rem] w-[1rem] rotate-0 scale-100  dark:-rotate-90 dark:scale-0 mr-2 font-bold"
                     style={{ color: interview.theme_color }}
                   />
                   <div className="text-sm font-normal">
@@ -321,7 +321,7 @@ function Call({ interview }: InterviewProps) {
               )}
             </CardHeader>
             {!isStarted && !isEnded && !isOldUser && (
-              <div className="w-fit min-w-[400px] max-w-[400px] mx-auto mt-2  border border-indigo-200 rounded-md p-2 m-2 bg-slate-50">
+              <div className="w-fit min-w-[400px] max-w-[400px] mx-auto mt-2  border border-orange-200 rounded-md p-2 m-2 bg-slate-50">
                 <div>
                   {interview?.logo_url && (
                     <div className="p-1 flex justify-center">
@@ -368,8 +368,8 @@ function Call({ interview }: InterviewProps) {
                   <Button
                     className="min-w-20 h-10 rounded-lg flex flex-row justify-center mb-8"
                     style={{
-                      backgroundColor: interview.theme_color ?? "#4F46E5",
-                      color: isLightColor(interview.theme_color ?? "#4F46E5")
+                      backgroundColor: interview.theme_color ?? "#f97316",
+                      color: isLightColor(interview.theme_color ?? "#f97316")
                         ? "black"
                         : "white",
                     }}
@@ -398,7 +398,7 @@ function Call({ interview }: InterviewProps) {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          className="bg-indigo-600 hover:bg-indigo-800"
+                          className="bg-orange-500 hover:bg-orange-600"
                           onClick={async () => {
                             await onEndCallClick();
                           }}
@@ -466,7 +466,7 @@ function Call({ interview }: InterviewProps) {
                 <AlertDialog>
                   <AlertDialogTrigger className="w-full">
                     <Button
-                      className=" bg-white text-black border  border-indigo-600 h-10 mx-auto flex flex-row justify-center mb-8"
+                      className=" bg-white text-black border  border-orange-500 h-10 mx-auto flex flex-row justify-center mb-8"
                       disabled={Loading}
                     >
                       End Interview{" "}
@@ -484,7 +484,7 @@ function Call({ interview }: InterviewProps) {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
-                        className="bg-indigo-600 hover:bg-indigo-800"
+                        className="bg-orange-500 hover:bg-orange-600"
                         onClick={async () => {
                           await onEndCallClick();
                         }}
@@ -498,10 +498,10 @@ function Call({ interview }: InterviewProps) {
             )}
 
             {isEnded && !isOldUser && (
-              <div className="w-fit min-w-[400px] max-w-[400px] mx-auto mt-2  border border-indigo-200 rounded-md p-2 m-2 bg-slate-50  absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+              <div className="w-fit min-w-[400px] max-w-[400px] mx-auto mt-2  border border-orange-200 rounded-md p-2 m-2 bg-slate-50  absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
                 <div>
                   <div className="p-2 font-normal text-base mb-4 whitespace-pre-line">
-                    <CheckCircleIcon className="h-[2rem] w-[2rem] mx-auto my-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-indigo-500 " />
+                    <CheckCircleIcon className="h-[2rem] w-[2rem] mx-auto my-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-orange-500 " />
                     <p className="text-lg font-semibold text-center">
                       {isStarted
                         ? `Thank you for taking the time to participate in this interview`
@@ -520,7 +520,7 @@ function Call({ interview }: InterviewProps) {
                     >
                       <AlertDialogTrigger className="w-full flex justify-center">
                         <Button
-                          className="bg-indigo-600 text-white h-10 mt-4 mb-4"
+                          className="bg-orange-500 text-white h-10 mt-4 mb-4"
                           onClick={() => setIsDialogOpen(true)}
                         >
                           Provide Feedback
@@ -538,10 +538,10 @@ function Call({ interview }: InterviewProps) {
               </div>
             )}
             {isOldUser && (
-              <div className="w-fit min-w-[400px] max-w-[400px] mx-auto mt-2  border border-indigo-200 rounded-md p-2 m-2 bg-slate-50  absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+              <div className="w-fit min-w-[400px] max-w-[400px] mx-auto mt-2  border border-orange-200 rounded-md p-2 m-2 bg-slate-50  absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
                 <div>
                   <div className="p-2 font-normal text-base mb-4 whitespace-pre-line">
-                    <CheckCircleIcon className="h-[2rem] w-[2rem] mx-auto my-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-indigo-500 " />
+                    <CheckCircleIcon className="h-[2rem] w-[2rem] mx-auto my-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-orange-500 " />
                     <p className="text-lg font-semibold text-center">
                       You have already responded in this interview or you are
                       not eligible to respond. Thank you!
@@ -558,16 +558,16 @@ function Call({ interview }: InterviewProps) {
         </Card>
         <a
           className="flex flex-row justify-center align-middle mt-3"
-          href="https://folo-up.co/"
+          href="https://rapidscreen.ai/"
           target="_blank"
         >
           <div className="text-center text-md font-semibold mr-2  ">
             Powered by{" "}
             <span className="font-bold">
-              Folo<span className="text-indigo-600">Up</span>
+              <span className="text-orange-500">Rapid</span><span className="text-gray-500">Screen</span>
             </span>
           </div>
-          <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-indigo-500 " />
+          <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-orange-500 " />
         </a>
       </div>
     </div>

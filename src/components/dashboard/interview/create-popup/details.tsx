@@ -168,6 +168,7 @@ function DetailsPopup({
                   key={item.id}
                 >
                   <button
+                    type="button"
                     className="absolute ml-9"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -175,12 +176,12 @@ function DetailsPopup({
                       setOpenInterviewerDetails(true);
                     }}
                   >
-                    <Info size={18} color="#4f46e5" strokeWidth={2.2} />
+                    <Info size={18} color="#f97316" strokeWidth={2.2} />
                   </button>
                   <div
                     className={`w-[96px] overflow-hidden rounded-full ${
                       selectedInterviewer === item.id
-                        ? "border-4 border-indigo-600"
+                        ? "border-4 border-orange-500"
                         : ""
                     }`}
                     onClick={() => setSelectedInterviewer(item.id)}
@@ -242,7 +243,7 @@ function DetailsPopup({
               <Switch
                 checked={isAnonymous}
                 className={`ml-4 mt-1 ${
-                  isAnonymous ? "bg-indigo-600" : "bg-[#E6E7EB]"
+                  isAnonymous ? "bg-orange-500" : "bg-[#E6E7EB]"
                 }`}
                 onCheckedChange={(checked) => setIsAnonymous(checked)}
               />
@@ -314,7 +315,7 @@ function DetailsPopup({
                   ? false
                   : true) || isClicked
               }
-              className="bg-indigo-600 hover:bg-indigo-800  w-40"
+              className="bg-orange-500 hover:bg-orange-600  w-40"
               onClick={() => {
                 setIsClicked(true);
                 onGenrateQuestions();
@@ -332,7 +333,7 @@ function DetailsPopup({
                   ? false
                   : true) || isClicked
               }
-              className="bg-indigo-600 w-40 hover:bg-indigo-800"
+              className="bg-orange-500 w-40 hover:bg-orange-600"
               onClick={() => {
                 setIsClicked(true);
                 onManual();

@@ -30,17 +30,17 @@ function PopupLoader() {
       </div>
       <a
         className="flex flex-row justify-center align-middle mt-3"
-        href="https://folo-up.co/"
+        href="https://rapidscreen.ai/"
         target="_blank"
         rel="noopener noreferrer"
       >
         <div className="text-center text-md font-semibold mr-2">
           Powered by{" "}
           <span className="font-bold">
-            Folo<span className="text-indigo-600">Up</span>
+            <span className="text-orange-500">Rapid</span><span className="text-gray-500">Screen</span>
           </span>
         </div>
-        <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-indigo-500" />
+        <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-orange-500" />
       </a>
     </div>
   );
@@ -64,17 +64,17 @@ function PopUpMessage({ title, description, image }: PopupProps) {
       </div>
       <a
         className="flex flex-row justify-center align-middle mt-3"
-        href="https://folo-up.co/"
+        href="https://rapidscreen.ai/"
         target="_blank"
         rel="noopener noreferrer"
       >
         <div className="text-center text-md font-semibold mr-2">
           Powered by{" "}
           <span className="font-bold">
-            Folo<span className="text-indigo-600">Up</span>
+            <span className="text-orange-500">Rapid</span><span className="text-gray-500">Screen</span>
           </span>
         </div>
-        <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-indigo-500" />
+        <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-orange-500" />
       </a>
     </div>
   );
@@ -148,10 +148,10 @@ function InterviewInterface({ params }: Props) {
           Powered by{" "}
           <a
             className="font-bold underline"
-            href="www.folo-up.co"
+            href="https://rapidscreen.ai"
             target="_blank"
           >
-            Folo<span className="text-indigo-600">Up</span>
+            <span className="text-orange-500">Rapid</span><span className="text-gray-500">Screen</span>
           </a>
         </div>
       </div>

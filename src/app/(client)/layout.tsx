@@ -13,15 +13,15 @@ import { usePathname } from "next/navigation";
 const inter = Inter({ subsets: ["latin"] });
 
 const metadata = {
-  title: "FoloUp",
-  description: " AI-powered Interviews",
+  title: "RapidScreen",
+  description: "Voice AI-powered Interviews",
   openGraph: {
-    title: "FoloUp",
-    description: "AI-powered Interviews",
-    siteName: "FoloUp",
+    title: "RapidScreen",
+    description: "Voice AI-powered Interviews",
+    siteName: "RapidScreen",
     images: [
       {
-        url: "/foloup.png",
+        url: "/Group 2.png",
         width: 800,
         height: 600,
       },
@@ -58,22 +58,27 @@ export default function RootLayout({
           <Providers>
             {!pathname.includes("/sign-in") &&
               !pathname.includes("/sign-up") && <Navbar />}
-            <div className="flex flex-row h-screen">
-              {!pathname.includes("/sign-in") &&
-                !pathname.includes("/sign-up") && <SideMenu />}
-              <div className="ml-[200px] pt-[64px] h-full overflow-y-auto flex-grow">
+            {pathname.includes("/sign-in") || pathname.includes("/sign-up") ? (
+              <div className="h-screen w-full">
                 {children}
               </div>
-            </div>
+            ) : (
+              <div className="flex flex-row h-screen">
+                <SideMenu />
+                <div className="ml-[200px] pt-[64px] h-full overflow-y-auto flex-grow">
+                  {children}
+                </div>
+              </div>
+            )}
             <Toaster
               toastOptions={{
                 classNames: {
-                  toast: "bg-white",
-                  title: "text-black",
-                  description: "text-red-400",
-                  actionButton: "bg-indigo-400",
-                  cancelButton: "bg-orange-400",
-                  closeButton: "bg-white-400",
+                  toast: "bg-white border border-gray-200",
+                  title: "text-gray-900",
+                  description: "text-gray-600",
+                  actionButton: "bg-orange-500 text-white hover:bg-orange-600",
+                  cancelButton: "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                  closeButton: "text-gray-400 hover:text-gray-600",
                 },
               }}
             />

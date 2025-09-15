@@ -32,7 +32,7 @@ function InfoTooltip({ content }: { content: string }) {
       <Tooltip>
         <TooltipTrigger>
           <Info
-            className="h-2 w-2 text-[#4F46E5] inline-block ml-0 align-super font-bold"
+            className="h-2 w-2 text-[#f97316] inline-block ml-0 align-super font-bold"
             strokeWidth={2.5}
           />
         </TooltipTrigger>
@@ -200,7 +200,7 @@ function SummaryInfo({ responses, interview }: SummaryProps) {
                   <InfoTooltip content="Average time users took to complete an interview" />
                 </div>
                 <div className="flex items-center justify-center">
-                  <p className="text-2xl font-semibold text-indigo-600 w-fit p-1 px-2 bg-indigo-100 rounded-md">
+                  <p className="text-2xl font-semibold text-orange-600 w-fit p-1 px-2 bg-orange-100 rounded-md">
                     {convertSecondstoMMSS(totalDuration / responses.length)}
                   </p>
                 </div>
@@ -210,7 +210,7 @@ function SummaryInfo({ responses, interview }: SummaryProps) {
                   Interview Completion Rate
                   <InfoTooltip content="Percentage of interviews completed successfully" />
                 </div>
-                <p className="w-fit text-2xl font-semibold text-indigo-600  p-1 px-2 bg-indigo-100 rounded-md">
+                <p className="w-fit text-2xl font-semibold text-orange-600  p-1 px-2 bg-orange-100 rounded-md">
                   {Math.round(
                     (completedInterviews / responses.length) * 10000,
                   ) / 100}

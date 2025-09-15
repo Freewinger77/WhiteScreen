@@ -17,6 +17,8 @@ const nextConfig = {
       },
     ],
   },
+  // Disable source maps in production to avoid 404 errors
+  productionBrowserSourceMaps: false,
   webpack: (webpackConfig, { webpack }) => {
     webpackConfig.plugins.push(
       // Remove node: from import specifiers, because Next.js does not yet support node: scheme
