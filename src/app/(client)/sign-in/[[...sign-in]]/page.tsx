@@ -12,10 +12,10 @@ function SignInPage() {
         {/* Animated Gradient Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-orange-300 via-orange-400 to-orange-500">
           <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-            <div className="absolute top-0 -right-4 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
-            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-orange-100 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
-            <div className="absolute bottom-0 right-20 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-1000"></div>
+            <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-pulse" />
+            <div className="absolute top-0 -right-4 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000" />
+            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-orange-100 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000" />
+            <div className="absolute bottom-0 right-20 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-1000" />
           </div>
         </div>
         
@@ -143,7 +143,7 @@ function SignInPage() {
           {/* Footer Text */}
           <div className="mt-10 text-center">
             <p className="text-sm text-gray-500">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <a href="/sign-up" className="text-orange-600 hover:text-orange-700 font-medium transition-colors">
                 Sign up
               </a>
