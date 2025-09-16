@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { useInterviewers } from "@/contexts/interviewers.context";
-import { InterviewBase, Question } from "@/types/interview";
+import { InterviewBase } from "@/types/interview";
 import { ChevronRight, ChevronLeft, Info } from "lucide-react";
 import Image from "next/image";
 import { CardTitle } from "@/components/ui/card";
@@ -54,7 +53,6 @@ function DetailsPopup({
       : String(interviewData.question_count),
   );
   const [duration, setDuration] = useState(interviewData.time_duration);
-  const [uploadedDocumentContext, setUploadedDocumentContext] = useState("");
 
   const slideLeft = (id: string, value: number) => {
     var slider = document.getElementById(`${id}`);
@@ -70,46 +68,6 @@ function DetailsPopup({
     }
   };
 
-  const onGenrateQuestions = async () => {
-    setLoading(true);
-
-    const data = {
-      name: name.trim(),
-      objective: objective.trim(),
-      number: numQuestions,
-      context: uploadedDocumentContext,
-    };
-
-    const generatedQuestions = (await axios.post(
-      "/api/generate-interview-questions",
-      data,
-    )) as any;
-
-    const generatedQuestionsResponse = JSON.parse(
-      generatedQuestions?.data?.response,
-    );
-
-    const updatedQuestions = generatedQuestionsResponse.questions.map(
-      (question: Question) => ({
-        id: uuidv4(),
-        question: question.question.trim(),
-        follow_up_count: 1,
-      }),
-    );
-
-    const updatedInterviewData = {
-      ...interviewData,
-      name: name.trim(),
-      objective: objective.trim(),
-      questions: updatedQuestions,
-      interviewer_id: selectedInterviewer,
-      question_count: Number(numQuestions),
-      time_duration: duration,
-      description: generatedQuestionsResponse.description,
-      is_anonymous: isAnonymous,
-    };
-    setInterviewData(updatedInterviewData);
-  };
 
   const onManual = () => {
     setLoading(true);
@@ -304,25 +262,7 @@ function DetailsPopup({
               />
             </div>
           </div>
-          <div className="flex flex-row w-full justify-center items-center space-x-24 mt-5">
-            <Button
-              disabled={
-                (name &&
-                objective &&
-                numQuestions &&
-                duration &&
-                selectedInterviewer != BigInt(0)
-                  ? false
-                  : true) || isClicked
-              }
-              className="bg-orange-500 hover:bg-orange-600  w-40"
-              onClick={() => {
-                setIsClicked(true);
-                onGenrateQuestions();
-              }}
-            >
-              Generate Questions
-            </Button>
+          <div className="flex flex-row w-full justify-center items-center mt-5">
             <Button
               disabled={
                 (name &&
@@ -339,7 +279,7 @@ function DetailsPopup({
                 onManual();
               }}
             >
-              I&apos;ll do it myself
+              Next
             </Button>
           </div>
         </div>
