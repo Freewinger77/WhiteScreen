@@ -186,13 +186,12 @@ function DetailsPopup({
           <h3 className="text-sm font-medium mt-2">
             Upload any documents related to the interview.
           </h3>
-          <FileUpload
-            isUploaded={isUploaded}
-            setIsUploaded={setIsUploaded}
-            fileName={fileName}
-            setFileName={setFileName}
-            setUploadedDocumentContext={setUploadedDocumentContext}
-          />
+            <FileUpload
+              isUploaded={isUploaded}
+              setIsUploaded={setIsUploaded}
+              fileName={fileName}
+              setFileName={setFileName}
+            />
           <label className="flex-col mt-7 w-full">
             <div className="flex items-center cursor-pointer">
               <span className="text-sm font-medium">
