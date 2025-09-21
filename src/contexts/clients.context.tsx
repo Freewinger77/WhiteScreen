@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useContext, ReactNode, useEffect } from "react";
+import React, { useState, useContext, ReactNode, useEffect, useRef } from "react";
 import { User } from "@/types/user";
 import { useClerk, useOrganization } from "@clerk/nextjs";
 import { ClientService } from "@/services/clients.service";
@@ -23,6 +23,8 @@ export function ClientProvider({ children }: ClientProviderProps) {
   const { organization } = useOrganization();
 
   const [clientLoading, setClientLoading] = useState(true);
+  const lastUserIdRef = useRef<string | null>(null);
+  const lastOrgIdRef = useRef<string | null>(null);
 
   const fetchClient = async () => {
     try {
@@ -53,14 +55,18 @@ export function ClientProvider({ children }: ClientProviderProps) {
   };
 
   useEffect(() => {
-    if (user?.id) {
+    const userId = user?.id || null;
+    if (userId && lastUserIdRef.current !== userId) {
+      lastUserIdRef.current = userId;
       fetchClient();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   useEffect(() => {
-    if (organization?.id) {
+    const orgId = organization?.id || null;
+    if (orgId && lastOrgIdRef.current !== orgId) {
+      lastOrgIdRef.current = orgId;
       fetchOrganization();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

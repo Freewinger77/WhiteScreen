@@ -10,7 +10,17 @@ import { ResponseProvider } from "@/contexts/responses.context";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { ClientProvider } from "@/contexts/clients.context";
 
-const queryClient = new QueryClient();
+// Create a single QueryClient with stable defaults to avoid refetching on focus
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: 1,
+      staleTime: 1000 * 30, // 30s
+    },
+  },
+});
 
 const providers = ({ children }: ThemeProviderProps) => {
   const Provider = compose([

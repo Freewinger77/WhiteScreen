@@ -179,7 +179,7 @@ function EditInterview({ interview }: EditInterviewProps) {
           <div className="flex flex-row gap-3">
             <Button
               disabled={isClicked}
-              className="bg-orange-500 hover:bg-orange-600 mt-2"
+              className="bg-orange-600 hover:bg-orange-800 mt-2"
               onClick={() => {
                 setIsClicked(true);
                 onSave();
@@ -207,7 +207,7 @@ function EditInterview({ interview }: EditInterviewProps) {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    className="bg-orange-500 hover:bg-orange-600"
+                    className="bg-orange-600 hover:bg-orange-800"
                     onClick={async () => {
                       await onDeleteInterviewClick();
                     }}
@@ -256,7 +256,7 @@ function EditInterview({ interview }: EditInterviewProps) {
                     <div
                       className={`w-[96px] overflow-hidden rounded-full ${
                         selectedInterviewer === item.id
-                          ? "border-4 border-orange-500"
+                          ? "border-4 border-indigo-600"
                           : ""
                       }`}
                       onClick={() => {
@@ -288,7 +288,7 @@ function EditInterview({ interview }: EditInterviewProps) {
             <Switch
               checked={isAnonymous}
               className={`ml-4 mt-1 border-2 border-gray-300 ${
-                isAnonymous ? "bg-orange-500" : "bg-white"
+                isAnonymous ? "bg-orange-600" : "bg-white"
               }`}
               onCheckedChange={(checked) => setIsAnonymous(checked)}
             />
@@ -363,7 +363,7 @@ function EditInterview({ interview }: EditInterviewProps) {
           <div ref={endOfListRef} />
           {questions.length < numQuestions ? (
             <div
-              className="border-orange-500 opacity-75 hover:opacity-100 w-fit text-center rounded-full mx-auto"
+              className="border-indigo-600 opacity-75 hover:opacity-100 w-fit text-center rounded-full mx-auto"
               onClick={handleAddQuestion}
             >
               <Plus

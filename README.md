@@ -1,12 +1,8 @@
-[![GitHub stars](https://img.shields.io/github/stars/FoloUp/FoloUp?style=social)](https://github.com/FoloUp/FoloUp/stargazers)
-![License](https://img.shields.io/github/license/foloup/foloup)
-[![Twitter Follow](https://img.shields.io/twitter/follow/SuveenE?style=social)](https://x.com/SuveenE)
+# vocalHire - AI-powered voice interviewer for hiring 💼
 
-# FoloUp - AI-powered voice interviewer for hiring 💼
+vocalHire is an open source platform for companies to conduct AI powered hiring interviews with their candidates.
 
-FoloUp is an open source platform for companies to conduct AI powered hiring interviews with their candidates.
-
-<img src="https://github.com/user-attachments/assets/fa92ade1-02ea-4332-b5ed-97056dea01c3" alt="FoloUp Logo" width="800">
+<img src="https://github.com/user-attachments/assets/fa92ade1-02ea-4332-b5ed-97056dea01c3" alt="vocalHire Logo" width="800">
 
 <div style="display: flex; flex-direction: row; gap: 20px; margin: 20px 0;">
   <picture>
@@ -25,14 +21,13 @@ FoloUp is an open source platform for companies to conduct AI powered hiring int
 - **📊 Smart Analysis:** Get detailed insights and scores for each interview response, powered by advanced AI.
 - **📈 Comprehensive Dashboard:** Track all candidate performances and overall stats.
 
-Here's a [loom](https://www.loom.com/share/762fd7d12001490bbfdcf3fac37ff173?sid=9a5b2a5a-64df-4c4c-a0e7-fc9765691f81) of me explaining the app.
 
 ## Initial Setup
 
 1. Clone the project.
 
 ```bash
-git clone https://github.com/FoloUp/FoloUp.git
+git clone https://github.com/vocalHire/vocalHire.git
 ```
 
 2. Copy the existing environment template file
@@ -104,30 +99,13 @@ We recommend using [Vercel](https://vercel.com/) to host the app.
 
 ## Contributing
 
-If you'd like to contribute to FoloUp, feel free to fork the repository, make your changes, and submit a pull request. Contributions are welcomed and appreciated.
+If you'd like to contribute to vocalHire, feel free to fork the repository, make your changes, and submit a pull request. Contributions are welcomed and appreciated.
 
 For a detailed guide on contributing, read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 ## Show Your Support 🌟
 
-If you find FoloUp helpful, please consider giving us a star on GitHub! It helps us reach more developers and continue improving the project.
-
-## Products built on top of FoloUp 🚀
-
-<div style="display: flex; flex-direction: row; gap: 40px; align-items: center;">
-  <a href="https://talvin.ai/" target="_blank" style="text-align: center; text-decoration: none;">
-    <img src="https://pbs.twimg.com/profile_images/1910041959508422656/OEnXp-kO_400x400.jpg" alt="Talvin AI Logo" height="100" style="border-radius: 20%;">
-    <p>Talvin AI</p>
-  </a>
-  <a href="https://tryrapidscreen.com/" target="_blank" style="text-align: center; text-decoration: none;">
-    <img src="https://media.licdn.com/dms/image/v2/D4E0BAQGbqXmQPuIQ2Q/company-logo_200_200/B4EZaWsDTcHcAM-/0/1746284852800/tryhiregenius_logo?e=1760572800&v=beta&t=IbbKmLlkeyyLNs9ZeQU4l28FBbcNJvUtaeefJhkOUE0" alt="Rapidscreen Logo" height="100" style="border-radius: 20%;">
-    <p>Rapidscreen</p>
-  </a>
-</div>
-
-## Contact
-
-If you have any questions or feedback, please feel free to reach out to us at [suveen.te1[at]gmail.com](mailto:suveen.te1@gmail.com).
+If you find vocalHire helpful, please consider giving us a star on GitHub! It helps us reach more developers and continue improving the project.
 
 ## License
 

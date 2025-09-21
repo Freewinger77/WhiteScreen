@@ -32,7 +32,7 @@ function InfoTooltip({ content }: { content: string }) {
       <Tooltip>
         <TooltipTrigger>
           <Info
-            className="h-2 w-2 text-[#f97316] inline-block ml-0 align-super font-bold"
+            className="h-2 w-2 text-[#4F46E5] inline-block ml-0 align-super font-bold"
             strokeWidth={2.5}
           />
         </TooltipTrigger>

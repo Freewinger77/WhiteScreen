@@ -11,7 +11,7 @@ enum SatisfactionLevel {
 
 interface FeedbackFormProps {
   onSubmit: (data: Omit<FeedbackData, "interview_id">) => void;
-  email: string;
+  email?: string;
 }
 
 export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
@@ -25,7 +25,7 @@ export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
       onSubmit({
         satisfaction: Object.values(SatisfactionLevel).indexOf(satisfaction),
         feedback,
-        email,
+        email: email ?? null,
       });
     }
   };
@@ -39,8 +39,7 @@ export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
         {Object.values(SatisfactionLevel).map((emoji) => (
           <button
             key={emoji}
-            type="button"
-            className={`text-3xl ${satisfaction === emoji ? "border-2 border-orange-600" : ""}`}
+            className={`text-3xl ${satisfaction === emoji ? "border-2 border-indigo-600" : ""}`}
             onClick={() => setSatisfaction(emoji)}
           >
             {emoji}
@@ -55,7 +54,7 @@ export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
       />
       <Button
         disabled={satisfaction === null && feedback.trim() === ""}
-        className="w-full bg-orange-600 text-white"
+        className="w-full bg-indigo-600 text-white"
         onClick={handleSubmit}
       >
         Submit Feedback

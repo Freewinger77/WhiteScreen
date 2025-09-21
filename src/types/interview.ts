@@ -21,6 +21,7 @@ export interface InterviewBase {
   questions: Question[];
   description: string;
   response_count: bigint;
+  job_context?: string;
 }
 
 export interface InterviewDetails {
@@ -35,6 +36,7 @@ export interface InterviewDetails {
   logo_url: string;
   respondents: string[];
   readable_slug: string;
+  show_feedback_form?: boolean;
 }
 
 export interface Interview extends InterviewBase, InterviewDetails {}

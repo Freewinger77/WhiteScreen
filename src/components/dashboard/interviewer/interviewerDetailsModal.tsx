@@ -3,12 +3,18 @@ import { CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import ReactAudioPlayer from "react-audio-player";
 import { Interviewer } from "@/types/interviewer";
+import { useState } from "react";
 
 interface Props {
   interviewer: Interviewer | undefined;
 }
 
 function InterviewerDetailsModal({ interviewer }: Props) {
+  const [empathyValue, setEmpathyValue] = useState((interviewer?.empathy || 10) / 10);
+  const [rapportValue, setRapportValue] = useState((interviewer?.rapport || 10) / 10);
+  const [explorationValue, setExplorationValue] = useState((interviewer?.exploration || 10) / 10);
+  const [speedValue, setSpeedValue] = useState((interviewer?.speed || 10) / 10);
+
   return (
     <div className="text-center w-[40rem]">
       <CardTitle className="text-3xl text mt-0 p-0 font-semibold ">
@@ -43,12 +49,13 @@ function InterviewerDetailsModal({ interviewer }: Props) {
               <h4 className="w-20 text-left">Empathy</h4>
               <div className="w-40 space-x-3 ml-3 flex justify-between items-center">
                 <Slider
-                  value={[(interviewer?.empathy || 10) / 10]}
+                  value={[empathyValue]}
                   max={1}
                   step={0.1}
+                  onValueChange={(value) => setEmpathyValue(value[0])}
                 />
                 <span className="w-8 text-left">
-                  {(interviewer?.empathy || 10) / 10}
+                  {empathyValue}
                 </span>
               </div>
             </div>
@@ -56,12 +63,13 @@ function InterviewerDetailsModal({ interviewer }: Props) {
               <h4 className="w-20 text-left">Rapport</h4>
               <div className="w-40 space-x-3 ml-3 flex justify-between items-center">
                 <Slider
-                  value={[(interviewer?.rapport || 10) / 10]}
+                  value={[rapportValue]}
                   max={1}
                   step={0.1}
+                  onValueChange={(value) => setRapportValue(value[0])}
                 />
                 <span className="w-8 text-left">
-                  {(interviewer?.rapport || 10) / 10}
+                  {rapportValue}
                 </span>
               </div>
             </div>
@@ -71,12 +79,13 @@ function InterviewerDetailsModal({ interviewer }: Props) {
               <h4 className="w-20 text-left">Exploration</h4>
               <div className="w-40 space-x-3 ml-3 flex justify-between items-center">
                 <Slider
-                  value={[(interviewer?.exploration || 10) / 10]}
+                  value={[explorationValue]}
                   max={1}
                   step={0.1}
+                  onValueChange={(value) => setExplorationValue(value[0])}
                 />
                 <span className="w-8 text-left">
-                  {(interviewer?.exploration || 10) / 10}
+                  {explorationValue}
                 </span>
               </div>
             </div>
@@ -84,12 +93,13 @@ function InterviewerDetailsModal({ interviewer }: Props) {
               <h4 className="w-20 text-left">Speed</h4>
               <div className="w-40 space-x-3 ml-3 flex justify-between items-center">
                 <Slider
-                  value={[(interviewer?.speed || 10) / 10]}
+                  value={[speedValue]}
                   max={1}
                   step={0.1}
+                  onValueChange={(value) => setSpeedValue(value[0])}
                 />
                 <span className="w-8 text-left">
-                  {(interviewer?.speed || 10) / 10}
+                  {speedValue}
                 </span>
               </div>
             </div>

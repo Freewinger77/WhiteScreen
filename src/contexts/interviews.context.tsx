@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useContext, ReactNode, useEffect } from "react";
+import React, { useState, useContext, ReactNode, useEffect, useRef } from "react";
 import { Interview } from "@/types/interview";
 import { InterviewService } from "@/services/interviews.service";
 import { useClerk, useOrganization } from "@clerk/nextjs";
@@ -32,6 +32,8 @@ export function InterviewProvider({ children }: InterviewProviderProps) {
   const { user } = useClerk();
   const { organization } = useOrganization();
   const [interviewsLoading, setInterviewsLoading] = useState(false);
+  const lastOrgIdRef = useRef<string | null>(null);
+  const lastUserIdRef = useRef<string | null>(null);
 
   const fetchInterviews = async () => {
     try {
@@ -55,7 +57,17 @@ export function InterviewProvider({ children }: InterviewProviderProps) {
   };
 
   useEffect(() => {
-    if (organization?.id || user?.id) {
+    const orgId = organization?.id || null;
+    const userId = user?.id || null;
+
+    // Only fetch when the effective identifiers change
+    const shouldFetch =
+      (orgId && lastOrgIdRef.current !== orgId) ||
+      (userId && lastUserIdRef.current !== userId);
+
+    if (shouldFetch) {
+      lastOrgIdRef.current = orgId;
+      lastUserIdRef.current = userId;
       fetchInterviews();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

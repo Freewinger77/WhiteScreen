@@ -71,7 +71,10 @@ CREATE TABLE response (
     is_analysed BOOLEAN DEFAULT false,
     is_ended BOOLEAN DEFAULT false,
     is_viewed BOOLEAN DEFAULT false,
-    tab_switch_count INTEGER
+    tab_switch_count INTEGER,
+    profile_id TEXT,
+    profile_type TEXT,
+    cv_url TEXT
 );
 
 CREATE TABLE feedback (

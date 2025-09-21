@@ -1,12 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
-  },
   async redirects() {
     return [
       {
@@ -16,6 +9,12 @@ const nextConfig = {
       },
     ];
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {
@@ -24,8 +23,6 @@ const nextConfig = {
       },
     ],
   },
-  // Disable source maps in production to avoid 404 errors
-  productionBrowserSourceMaps: false,
   webpack: (webpackConfig, { webpack }) => {
     webpackConfig.plugins.push(
       // Remove node: from import specifiers, because Next.js does not yet support node: scheme

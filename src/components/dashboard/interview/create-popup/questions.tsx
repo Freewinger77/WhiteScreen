@@ -134,13 +134,13 @@ function QuestionsPopup({ interviewData, setProceed, setOpen }: Props) {
         </ScrollArea>
         {questions.length < interviewData.question_count ? (
           <div
-            className="border-orange-500 opacity-75 hover:opacity-100 w-fit  rounded-full"
+            className="border-indigo-600 opacity-75 hover:opacity-100 w-fit  rounded-full"
             onClick={handleAddQuestion}
           >
             <Plus
               size={45}
               strokeWidth={2.2}
-              className="text-orange-600  cursor-pointer"
+              className="text-indigo-600  cursor-pointer"
             />
           </div>
         ) : (
@@ -176,7 +176,7 @@ function QuestionsPopup({ interviewData, setProceed, setOpen }: Props) {
             description.trim() === "" ||
             questions.some((question) => question.question.trim() === "")
           }
-          className="bg-orange-500 hover:bg-orange-600 mr-5 mt-2"
+          className="bg-indigo-600 hover:bg-indigo-800 mr-5 mt-2"
           onClick={() => {
             setIsClicked(true);
             onSave();

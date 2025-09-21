@@ -78,7 +78,7 @@ function DataTable({ data, interviewId }: DataTableProps) {
         return (
           <Button
             variant="ghost"
-            className={`w-full justify-start font-semibold text-[15px] mb-1 ${column.getIsSorted() ? "text-orange-600" : "text-black"}`}
+            className={`w-full justify-start font-semibold text-[15px] mb-1 ${column.getIsSorted() ? "text-indigo-600" : "text-black"}`}
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Name
@@ -94,7 +94,7 @@ function DataTable({ data, interviewId }: DataTableProps) {
                 <span className="cursor-pointer mr-2 flex-shrink-0">
                   <ExternalLink
                     size={16}
-                    className="text-current hover:text-orange-600"
+                    className="text-current hover:text-indigo-600"
                     onClick={(e) => {
                       e.stopPropagation();
                       window.open(
@@ -129,7 +129,7 @@ function DataTable({ data, interviewId }: DataTableProps) {
         return (
           <Button
             variant="ghost"
-            className={`w-full justify-start font-semibold text-[15px] mb-1 ${column.getIsSorted() ? "text-orange-600" : "text-black"}`}
+            className={`w-full justify-start font-semibold text-[15px] mb-1 ${column.getIsSorted() ? "text-indigo-600" : "text-black"}`}
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Overall Score
@@ -155,7 +155,7 @@ function DataTable({ data, interviewId }: DataTableProps) {
         return (
           <Button
             variant="ghost"
-            className={`w-full justify-start font-semibold text-[15px] mb-1 ${column.getIsSorted() ? "text-orange-600" : "text-black"}`}
+            className={`w-full justify-start font-semibold text-[15px] mb-1 ${column.getIsSorted() ? "text-indigo-600" : "text-black"}`}
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Communication Score

@@ -4,19 +4,20 @@ import "../globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import Providers from "@/components/providers";
 import { Toaster } from "sonner";
+import SessionWrapper from "@/components/SessionWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "RapidScreen",
-  description: "Voice AI-powered Interviews",
+  description: "AI powered Interviews",
   openGraph: {
     title: "RapidScreen",
-    description: "Voice AI-powered Interviews",
+    description: "AI-powered Interviews",
     siteName: "RapidScreen",
     images: [
       {
-        url: "/Group 2.png",
+        url: "/rapidscreen.png",
         width: 800,
         height: 600,
       },
@@ -37,23 +38,25 @@ export default function RootLayout({
         <link rel="icon" href="/browser-user-icon.ico" />
       </head>
       <body className={inter.className}>
-        <ClerkProvider>
-          <Providers>
-            {children}
-            <Toaster
-              toastOptions={{
-                classNames: {
-                  toast: "bg-white border-2 border-orange-400",
-                  title: "text-gray-900",
-                  description: "text-gray-600",
-                  actionButton: "bg-orange-500 text-white hover:bg-orange-600",
-                  cancelButton: "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                  closeButton: "text-gray-400 hover:text-gray-600",
-                },
-              }}
-            />
-          </Providers>
-        </ClerkProvider>
+        <SessionWrapper>
+          <ClerkProvider>
+            <Providers>
+              {children}
+              <Toaster
+                toastOptions={{
+                  classNames: {
+                    toast: "bg-white border-2 border-orange-400",
+                    title: "text-black",
+                    description: "text-red-400",
+                    actionButton: "bg-orange-400",
+                    cancelButton: "bg-orange-400",
+                    closeButton: "bg-lime-400",
+                  },
+                }}
+              />
+            </Providers>
+          </ClerkProvider>
+        </SessionWrapper>
       </body>
     </html>
   );

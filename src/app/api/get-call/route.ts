@@ -9,6 +9,8 @@ const retell = new Retell({
   apiKey: process.env.RETELL_API_KEY || "",
 });
 
+export const maxDuration = 59;
+
 export async function POST(req: Request, res: Response) {
   logger.info("get-call request received");
   const body = await req.json();
@@ -39,6 +41,19 @@ export async function POST(req: Request, res: Response) {
     transcript: callResponse.transcript,
   };
   const result = await generateInterviewAnalytics(payload);
+
+  if (result.error) {
+    logger.error(
+      `Failed to generate analytics for call ${body.id}: ${result.error}`,
+    );
+    return NextResponse.json(
+      {
+        error: "Failed to generate call analytics",
+        details: result.error,
+      },
+      { status: 500 },
+    );
+  }
 
   const analytics = result.analytics;
 

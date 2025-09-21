@@ -18,17 +18,30 @@ const createResponse = async (payload: any) => {
 };
 
 const saveResponse = async (payload: any, call_id: string) => {
-  const { error, data } = await supabase
+  // Try to update existing row first
+  const { error: updateError, data: updateData } = await supabase
     .from("response")
     .update({ ...payload })
-    .eq("call_id", call_id);
-  if (error) {
-    console.log(error);
-
-    return [];
+    .eq("call_id", call_id)
+    .select("id");
+  if (updateError) {
+    console.log(updateError);
+    return [] as Array<{ id: number }>;
+  }
+  if (Array.isArray(updateData) && updateData.length > 0) {
+    return updateData as Array<{ id: number }>;
   }
 
-  return data;
+  // If no row was updated, insert a new one with the provided call_id + payload
+  const { error: insertError, data: insertData } = await supabase
+    .from("response")
+    .insert({ call_id, ...payload })
+    .select("id");
+  if (insertError) {
+    console.log(insertError);
+    return [] as Array<{ id: number }>;
+  }
+  return (insertData as Array<{ id: number }>) || [];
 };
 
 const getAllResponses = async (interviewId: string) => {
@@ -46,23 +59,6 @@ const getAllResponses = async (interviewId: string) => {
     console.log(error);
 
     return [];
-  }
-};
-
-const getResponseCountByOrganizationId = async (
-  organizationId: string,
-): Promise<number> => {
-  try {
-    const { count, error } = await supabase
-      .from("interview")
-      .select("response(id)", { count: "exact", head: true }) // join + count
-      .eq("organization_id", organizationId);
-
-    return count ?? 0;
-  } catch (error) {
-    console.log(error);
-
-    return 0;
   }
 };
 
@@ -114,14 +110,15 @@ const updateResponse = async (payload: any, call_id: string) => {
   const { error, data } = await supabase
     .from("response")
     .update({ ...payload })
-    .eq("call_id", call_id);
+    .eq("call_id", call_id)
+    .select("id");
   if (error) {
     console.log(error);
 
-    return [];
+    return [] as Array<{ id: number }>;
   }
 
-  return data;
+  return (data as Array<{ id: number }>) || [];
 };
 
 export const ResponseService = {
@@ -131,6 +128,5 @@ export const ResponseService = {
   getAllResponses,
   getResponseByCallId,
   deleteResponse,
-  getResponseCountByOrganizationId,
   getAllEmails: getAllEmailAddressesForInterview,
 };

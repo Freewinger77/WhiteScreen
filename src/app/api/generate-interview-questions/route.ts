@@ -10,17 +10,18 @@ export const maxDuration = 60;
 
 export async function POST(req: Request, res: Response) {
   logger.info("generate-interview-questions request received");
+  console.log("generate-interview-questions request received");
   const body = await req.json();
 
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-    maxRetries: 5,
+    maxRetries: 1,
     dangerouslyAllowBrowser: true,
   });
 
   try {
     const baseCompletion = await openai.chat.completions.create({
-      model: "gpt-5-mini-2025-08-07",
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",
@@ -47,9 +48,10 @@ export async function POST(req: Request, res: Response) {
     );
   } catch (error) {
     logger.error("Error generating interview questions");
-
+    logger.error(error as string);
+    console.log(error as string);
     return NextResponse.json(
-      { error: "internal server error" },
+      { error: error as string},
       { status: 500 },
     );
   }

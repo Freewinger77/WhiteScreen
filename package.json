@@ -1,5 +1,5 @@
 {
-  "name": "foloup-app",
+  "name": "VocalHire-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -55,6 +55,7 @@
     "md5": "^2.3.0",
     "nanoid": "^5.0.4",
     "next": "^14.2.4",
+    "next-auth": "^4.24.11",
     "next-themes": "^0.2.1",
     "openai": "^4.6.0",
     "pdf-parse": "^1.1.1",
@@ -74,6 +75,8 @@
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^10.0.0",
+    "VocalHire-app": "file:",
+    "vocalHirep-app": "file:",
     "yarn": "^1.22.22",
     "zod": "^3.22.4"
   },

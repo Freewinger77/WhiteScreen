@@ -13,7 +13,7 @@ export async function GET(res: NextRequest) {
 
   try {
     const newModel = await retellClient.llm.create({
-      model: "gpt-5-mini-2025-08-07",
+      model: "gpt-4.1-mini",
       general_prompt: RETELL_AGENT_GENERAL_PROMPT,
       general_tools: [
         {
@@ -28,7 +28,9 @@ export async function GET(res: NextRequest) {
     // Create Lisa
     const newFirstAgent = await retellClient.agent.create({
       response_engine: { llm_id: newModel.llm_id, type: "retell-llm" },
+      responsiveness: 0.4,
       voice_id: "11labs-Chloe",
+      enable_backchannel: false,
       agent_name: "Lisa",
     });
 
@@ -40,7 +42,9 @@ export async function GET(res: NextRequest) {
     // Create Bob
     const newSecondAgent = await retellClient.agent.create({
       response_engine: { llm_id: newModel.llm_id, type: "retell-llm" },
+      responsiveness: 0.4,
       voice_id: "11labs-Brian",
+      enable_backchannel: false,
       agent_name: "Bob",
     });
 

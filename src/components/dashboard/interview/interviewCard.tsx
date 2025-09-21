@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Copy, ArrowUpRight } from "lucide-react";
+import { Copy } from "lucide-react";
 import { CopyCheck } from "lucide-react";
 import { ResponseService } from "@/services/responses.service";
 import axios from "axios";
@@ -97,15 +97,6 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
       );
   };
 
-  const handleJumpToInterview = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    event.preventDefault();
-    const interviewUrl = readableSlug
-      ? `/call/${readableSlug}`
-      : `/call/${url}`;
-    window.open(interviewUrl, "_blank");
-  };
-
   return (
     <a
       href={`/interviews/${id}`}
@@ -116,7 +107,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
     >
       <Card className="relative p-0 mt-4 inline-block cursor-pointer h-60 w-56 ml-1 mr-3 rounded-xl shrink-0 overflow-hidden shadow-md">
         <CardContent className={`p-0 ${isFetching ? "opacity-60" : ""}`}>
-          <div className="w-full h-40 overflow-hidden bg-orange-500 flex items-center text-center">
+          <div className="w-full h-40 overflow-hidden bg-orange-600 flex items-center text-center">
             <CardTitle className="w-full mt-3 mx-2 text-white text-lg">
               {name}
               {isFetching && (
@@ -143,14 +134,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
               </span>
             </div>
           </div>
-          <div className="absolute top-2 right-2 flex gap-1">
-            <Button
-              className="text-xs text-orange-600 px-1 h-6"
-              variant={"secondary"}
-              onClick={handleJumpToInterview}
-            >
-              <ArrowUpRight size={16} />
-            </Button>
+          <div className="absolute top-2 right-2">
             <Button
               className={`text-xs text-orange-600 px-1 h-6  ${
                 copied ? "bg-orange-300 text-white" : ""

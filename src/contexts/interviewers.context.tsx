@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useContext, ReactNode, useEffect } from "react";
+import React, { useState, useContext, ReactNode, useEffect, useRef } from "react";
 import { Interviewer } from "@/types/interviewer";
 import { InterviewerService } from "@/services/interviewers.service";
 import { useClerk } from "@clerk/nextjs";
@@ -29,6 +29,7 @@ export function InterviewerProvider({ children }: InterviewerProviderProps) {
   const [interviewers, setInterviewers] = useState<Interviewer[]>([]);
   const { user } = useClerk();
   const [interviewersLoading, setInterviewersLoading] = useState(true);
+  const lastUserIdRef = useRef<string | null>(null);
 
   const fetchInterviewers = async () => {
     try {
@@ -49,7 +50,9 @@ export function InterviewerProvider({ children }: InterviewerProviderProps) {
   };
 
   useEffect(() => {
-    if (user?.id) {
+    const userId = user?.id || null;
+    if (userId && lastUserIdRef.current !== userId) {
+      lastUserIdRef.current = userId;
       fetchInterviewers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

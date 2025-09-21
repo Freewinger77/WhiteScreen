@@ -30,14 +30,14 @@ function PopupLoader() {
       </div>
       <a
         className="flex flex-row justify-center align-middle mt-3"
-        href="https://rapidscreen.ai/"
+        href="https://rapidscreen.my/"
         target="_blank"
         rel="noopener noreferrer"
       >
         <div className="text-center text-md font-semibold mr-2">
           Powered by{" "}
           <span className="font-bold">
-            <span className="text-orange-500">Rapid</span><span className="text-gray-500">Screen</span>
+            <span className="text-orange-500">Rapid</span><span className="text-gray-400">Screen</span>
           </span>
         </div>
         <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-orange-500" />
@@ -64,14 +64,14 @@ function PopUpMessage({ title, description, image }: PopupProps) {
       </div>
       <a
         className="flex flex-row justify-center align-middle mt-3"
-        href="https://rapidscreen.ai/"
+        href="https://rapidscreen.my/"
         target="_blank"
         rel="noopener noreferrer"
       >
         <div className="text-center text-md font-semibold mr-2">
           Powered by{" "}
           <span className="font-bold">
-            <span className="text-orange-500">Rapid</span><span className="text-gray-500">Screen</span>
+            <span className="text-orange-500">Rapid</span><span className="text-gray-400">Screen</span>
           </span>
         </div>
         <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-orange-500" />
@@ -148,10 +148,10 @@ function InterviewInterface({ params }: Props) {
           Powered by{" "}
           <a
             className="font-bold underline"
-            href="https://rapidscreen.ai"
+            href="https://rapidscreen.my/"
             target="_blank"
           >
-            <span className="text-orange-500">Rapid</span><span className="text-gray-500">Screen</span>
+            <span className="text-orange-500">Rapid</span><span className="text-gray-400">Screen</span>
           </a>
         </div>
       </div>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { useInterviewers } from "@/contexts/interviewers.context";
-import { InterviewBase } from "@/types/interview";
+import { InterviewBase, Question } from "@/types/interview";
 import { ChevronRight, ChevronLeft, Info } from "lucide-react";
 import Image from "next/image";
 import { CardTitle } from "@/components/ui/card";
@@ -53,6 +54,8 @@ function DetailsPopup({
       : String(interviewData.question_count),
   );
   const [duration, setDuration] = useState(interviewData.time_duration);
+  const [uploadedDocumentContext, setUploadedDocumentContext] = useState("");
+  const [jobContext, setJobContext] = useState(interviewData.job_context || "");
 
   const slideLeft = (id: string, value: number) => {
     var slider = document.getElementById(`${id}`);
@@ -68,6 +71,47 @@ function DetailsPopup({
     }
   };
 
+  const onGenrateQuestions = async () => {
+    setLoading(true);
+
+    const data = {
+      name: name.trim(),
+      objective: objective.trim(),
+      number: numQuestions,
+      context: uploadedDocumentContext,
+    };
+
+    const generatedQuestions = (await axios.post(
+      "/api/generate-interview-questions",
+      data,
+    )) as any;
+
+    const generatedQuestionsResponse = JSON.parse(
+      generatedQuestions?.data?.response,
+    );
+
+    const updatedQuestions = generatedQuestionsResponse.questions.map(
+      (question: Question) => ({
+        id: uuidv4(),
+        question: question.question.trim(),
+        follow_up_count: 1,
+      }),
+    );
+
+    const updatedInterviewData = {
+      ...interviewData,
+      name: name.trim(),
+      objective: objective.trim(),
+      questions: updatedQuestions,
+      interviewer_id: selectedInterviewer,
+      question_count: Number(numQuestions),
+      time_duration: duration,
+      description: generatedQuestionsResponse.description,
+      is_anonymous: isAnonymous,
+      job_context: jobContext.trim(),
+    };
+    setInterviewData(updatedInterviewData);
+  };
 
   const onManual = () => {
     setLoading(true);
@@ -82,6 +126,7 @@ function DetailsPopup({
       time_duration: String(duration),
       description: "",
       is_anonymous: isAnonymous,
+      job_context: jobContext.trim(),
     };
     setInterviewData(updatedInterviewData);
   };
@@ -95,6 +140,7 @@ function DetailsPopup({
       setNumQuestions("");
       setDuration("");
       setIsClicked(false);
+      setJobContext("");
     }
   }, [open]);
 
@@ -126,7 +172,6 @@ function DetailsPopup({
                   key={item.id}
                 >
                   <button
-                    type="button"
                     className="absolute ml-9"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -134,12 +179,12 @@ function DetailsPopup({
                       setOpenInterviewerDetails(true);
                     }}
                   >
-                    <Info size={18} color="#f97316" strokeWidth={2.2} />
+                    <Info size={18} color="#4f46e5" strokeWidth={2.2} />
                   </button>
                   <div
                     className={`w-[96px] overflow-hidden rounded-full ${
                       selectedInterviewer === item.id
-                        ? "border-4 border-orange-500"
+                        ? "border-4 border-indigo-600"
                         : ""
                     }`}
                     onClick={() => setSelectedInterviewer(item.id)}
@@ -183,15 +228,24 @@ function DetailsPopup({
             onChange={(e) => setObjective(e.target.value)}
             onBlur={(e) => setObjective(e.target.value.trim())}
           />
+          <h3 className="text-sm font-medium mt-2">Job Context:</h3>
+          <Textarea
+            value={jobContext}
+            className="h-24 mt-2 border-2 border-gray-500 w-[33.2rem]"
+            placeholder="e.g. Describe the role, required skills, company culture, etc."
+            onChange={(e) => setJobContext(e.target.value)}
+            onBlur={(e) => setJobContext(e.target.value.trim())}
+          />
           <h3 className="text-sm font-medium mt-2">
             Upload any documents related to the interview.
           </h3>
-            <FileUpload
-              isUploaded={isUploaded}
-              setIsUploaded={setIsUploaded}
-              fileName={fileName}
-              setFileName={setFileName}
-            />
+          <FileUpload
+            isUploaded={isUploaded}
+            setIsUploaded={setIsUploaded}
+            fileName={fileName}
+            setFileName={setFileName}
+            setUploadedDocumentContext={setUploadedDocumentContext}
+          />
           <label className="flex-col mt-7 w-full">
             <div className="flex items-center cursor-pointer">
               <span className="text-sm font-medium">
@@ -200,7 +254,7 @@ function DetailsPopup({
               <Switch
                 checked={isAnonymous}
                 className={`ml-4 mt-1 ${
-                  isAnonymous ? "bg-orange-500" : "bg-[#E6E7EB]"
+                  isAnonymous ? "bg-indigo-600" : "bg-[#E6E7EB]"
                 }`}
                 onCheckedChange={(checked) => setIsAnonymous(checked)}
               />
@@ -261,7 +315,7 @@ function DetailsPopup({
               />
             </div>
           </div>
-          <div className="flex flex-row w-full justify-center items-center mt-5">
+          <div className="flex flex-row w-full justify-center items-center space-x-24 mt-5">
             <Button
               disabled={
                 (name &&
@@ -272,13 +326,31 @@ function DetailsPopup({
                   ? false
                   : true) || isClicked
               }
-              className="bg-orange-500 w-40 hover:bg-orange-600"
+              className="bg-indigo-600 hover:bg-indigo-800  w-40"
+              onClick={() => {
+                setIsClicked(true);
+                onGenrateQuestions();
+              }}
+            >
+              Generate Questions
+            </Button>
+            <Button
+              disabled={
+                (name &&
+                objective &&
+                numQuestions &&
+                duration &&
+                selectedInterviewer != BigInt(0)
+                  ? false
+                  : true) || isClicked
+              }
+              className="bg-indigo-600 w-40 hover:bg-indigo-800"
               onClick={() => {
                 setIsClicked(true);
                 onManual();
               }}
             >
-              Next
+              I&apos;ll do it myself
             </Button>
           </div>
         </div>

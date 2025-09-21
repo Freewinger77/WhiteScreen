@@ -10,6 +10,9 @@ import {
   ClockIcon,
   InfoIcon,
   CheckIcon,
+  MicOff,
+  Mic,
+  PhoneOff,
   PhoneOffIcon,
   UserIcon,
   PlayIcon,
@@ -18,7 +21,6 @@ import {
   GithubIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  Edit2,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Card, CardHeader, CardTitle } from "../ui/card";
@@ -57,6 +59,7 @@ import { cn } from "@/lib/utils";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { v4 as uuidv4 } from 'uuid';
 import { signIn, signOut, useSession } from 'next-auth/react';
+import { Edit2 } from 'lucide-react';
 
 const webClient = new RetellWebClient();
 
@@ -93,7 +96,6 @@ function Call({ interview }: InterviewProps) {
   const [email, setEmail] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [linkedinProfile, setLinkedinProfile] = useState<string>("");
-  const [githubProfile, setGithubProfile] = useState<string>("");
   const [isValidEmail, setIsValidEmail] = useState<boolean>(false);
   const [isOldUser, setIsOldUser] = useState<boolean>(false);
   const [callId, setCallId] = useState<string>("");
@@ -136,7 +138,6 @@ function Call({ interview }: InterviewProps) {
 
   // --- Unmute Instruction State ---
   const [showUnmuteInstruction, setShowUnmuteInstruction] = useState(false);
-  const [showMuteGuide, setShowMuteGuide] = useState(true);
   // --- End Unmute Instruction State ---
 
   // --- State to hold args for delayed start ---
@@ -151,8 +152,8 @@ function Call({ interview }: InterviewProps) {
     const layerCount = 5;
     const starCount = 200;
     const maxTime = 30;
-    const width = (window.innerWidth || 1920) + 200; // Add extra width to cover edges
-    const height = (window.innerHeight || 1080) + 200; // Add extra height to cover edges
+    const width = window.innerWidth || 1920;
+    const height = window.innerHeight || 1080;
 
     // Clear existing stars
     universe.innerHTML = "";
@@ -191,11 +192,11 @@ function Call({ interview }: InterviewProps) {
       star.animate(
         [
           {
-            transform: `translate3d(${width + 100}px, ${ypos}px, 0)`,
+            transform: `translate3d(${width}px, ${ypos}px, 0)`,
             opacity: "0",
           },
           {
-            transform: `translate3d(-${Math.random() * 356}px, ${ypos}px, 0)`,
+            transform: `translate3d(-${Math.random() * 256}px, ${ypos}px, 0)`,
             opacity: "0.8",
           },
         ],
@@ -328,15 +329,6 @@ function Call({ interview }: InterviewProps) {
         if (!callId) return;
         hasSavedRef.current = true;
         console.log("[persistEnd] Persisting end of interview for callId:", callId);
-        // Combine LinkedIn and GitHub profiles with comma separator
-        const linkedinUrl = linkedinProfile ? `linkedin.com/in/${linkedinProfile}` : '';
-        const githubUrl = githubProfile ? `github.com/${githubProfile}` : '';
-        const profileIds = [
-          session?.user?.linkedinId,
-          linkedinUrl,
-          githubUrl
-        ].filter(Boolean).join(', ');
-        
         await ResponseService.saveResponse(
           {
             is_ended: true,
@@ -344,7 +336,7 @@ function Call({ interview }: InterviewProps) {
             interview_id: interview.id,
             email,
             name,
-            profile_id: profileIds || null,
+            profile_id: session?.user?.linkedinId || null,
             profile_type: session?.user?.linkedinId ? 'linkedin' : null,
           },
           callId,
@@ -497,22 +489,13 @@ function Call({ interview }: InterviewProps) {
         // --- Create Database Record (Real Interviews Only) ---
         if (!practiceMode) {
           console.log("[executeStartConversation] Creating DB record...");
-          // Combine LinkedIn and GitHub profiles with comma separator
-          const linkedinUrl = linkedinProfile ? `linkedin.com/in/${linkedinProfile}` : '';
-          const githubUrl = githubProfile ? `github.com/${githubProfile}` : '';
-          const profileIds = [
-            session?.user?.linkedinId,
-            linkedinUrl,
-            githubUrl
-          ].filter(Boolean).join(', ');
-          
           const newResponseId = await createResponse({
             interview_id: interview.id,
             call_id: currentCallId,
             email: userEmail,
             name: userName,
             cv_url: null, // No CV upload in Polymet flow
-            profile_id: profileIds || null,
+            profile_id: session?.user?.linkedinId || null,
             profile_type: session?.user?.linkedinId ? 'linkedin' : null,
           });
           if (!newResponseId) {
@@ -610,15 +593,6 @@ function Call({ interview }: InterviewProps) {
       console.log("Real interview ended. Saving response.");
       const updateResponse = async () => {
         try {
-          // Combine LinkedIn and GitHub profiles with comma separator
-          const linkedinUrl = linkedinProfile ? `linkedin.com/in/${linkedinProfile}` : '';
-          const githubUrl = githubProfile ? `github.com/${githubProfile}` : '';
-          const profileIds = [
-            session?.user?.linkedinId,
-            linkedinUrl,
-            githubUrl
-          ].filter(Boolean).join(', ');
-          
           await ResponseService.saveResponse(
             {
               is_ended: true,
@@ -627,7 +601,7 @@ function Call({ interview }: InterviewProps) {
               interview_id: interview.id,
               email,
               name,
-              profile_id: profileIds || null,
+              profile_id: session?.user?.linkedinId || null,
               profile_type: session?.user?.linkedinId ? 'linkedin' : null,
             },
             callId,
@@ -654,10 +628,6 @@ function Call({ interview }: InterviewProps) {
       webClient.mute();
     } else {
       webClient.unmute();
-    }
-    // Hide the guide after first interaction
-    if (showMuteGuide) {
-      setShowMuteGuide(false);
     }
   };
 
@@ -764,11 +734,11 @@ function Call({ interview }: InterviewProps) {
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Full Page Interstellar Background */}
       <div
         className="absolute inset-0"
-                style={{
+        style={{
           background: "linear-gradient(to right, #00223e, #ffa17f)",
         }}
       >
@@ -777,19 +747,19 @@ function Call({ interview }: InterviewProps) {
           ref={universeRef}
           className="absolute inset-0 overflow-hidden"
         ></div>
-            </div>
+      </div>
 
       {isStarted && !isPracticing && !isEnded && <TabSwitchWarning />}
       
       {/* Content Container */}
-      <div className="relative z-10 h-full flex overflow-y-auto">
+      <div className="relative z-10 min-h-screen flex">
         {/* Left Half - Info */}
         <div className="flex-1 flex flex-col justify-center p-12 text-white">
           <div className="max-w-2xl">
             {/* Icon */}
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl mb-8 shadow-2xl">
               <UserIcon className="w-8 h-8 text-white" />
-             </div>
+            </div>
 
             {/* Title - Fixed */}
             <h1 className="text-7xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
@@ -799,7 +769,7 @@ function Call({ interview }: InterviewProps) {
             <div className="flex items-center text-2xl text-blue-200 mb-6">
               <ClockIcon className="w-8 h-8 mr-4" />
               Expected duration: {interviewTimeDuration} mins or less
-                  </div>
+            </div>
 
             {/* Interview Description */}
             {interview?.description && (
@@ -810,8 +780,8 @@ function Call({ interview }: InterviewProps) {
                 <p className="text-blue-100 leading-relaxed">
                   {interview.description}
                 </p>
-                </div>
-              )}
+              </div>
+            )}
 
             {/* Instructions */}
             <div className="space-y-6">
@@ -834,7 +804,7 @@ function Call({ interview }: InterviewProps) {
                         grant microphone access
                       </span>
                     </p>
-                    </div>
+                  </div>
                   <div className="flex items-start">
                     <div className="w-3 h-3 bg-purple-400 rounded-full mt-3 mr-5 flex-shrink-0"></div>
                     <p className="text-blue-100 text-xl leading-relaxed">
@@ -874,15 +844,15 @@ function Call({ interview }: InterviewProps) {
                     </span>
                     <span className="text-sm text-gray-500">
                       {Math.round((currentStep / 4) * 100)}%
-                        </span>
-                      </div>
+                    </span>
+                  </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${(currentStep / 4) * 100}%` }}
                     ></div>
-                    </div>
                   </div>
+                </div>
 
                 {/* Step Content Container */}
                 <div className="flex-1 p-10 relative overflow-hidden">
@@ -909,21 +879,21 @@ function Call({ interview }: InterviewProps) {
                           </p>
                         </div>
                         <div className="max-w-md mx-auto space-y-6">
-                  {!interview?.is_anonymous && (
+                          {!interview?.is_anonymous && (
                             <>
-                      {session?.user ? (
+                              {session?.user ? (
                                 // LinkedIn authenticated - show success state
                                 <div className="space-y-4">
                                   <div className="flex justify-center items-center gap-2 p-3 bg-green-50 rounded-xl border border-green-200">
                                     <LinkedinIcon className="h-5 w-5 text-[#0077B5]" />
                                     <span className="text-sm font-medium text-green-700">Signed in as {session.user.name}</span>
-                            <button
-                              onClick={() => signOut()}
+                                    <button
+                                      onClick={() => signOut()}
                                       className="text-sm text-blue-600 hover:text-blue-800 underline ml-2"
-                            >
-                              Sign out
-                            </button>
-                          </div>
+                                    >
+                                      Sign out
+                                    </button>
+                                  </div>
                                 </div>
                               ) : (
                                 <>
@@ -950,20 +920,20 @@ function Call({ interview }: InterviewProps) {
                                   {showManualEntry && (
                                     <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
                                       <Input
-                              placeholder="Enter your first name"
+                                        placeholder="Enter your first name"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         className="bg-gray-50 border-gray-200 py-4 rounded-xl text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
+                                      />
 
                                       <Input
-                              type="email"
-                              placeholder="Enter your email address"
+                                        type="email"
+                                        placeholder="Enter your email address"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="bg-gray-50 border-gray-200 py-4 rounded-xl text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
+                                      />
+                                    </div>
                                   )}
                                 </>
                               )}
@@ -1058,68 +1028,42 @@ function Call({ interview }: InterviewProps) {
                                 <span className="text-red-800 font-medium text-sm">
                                   Microphone access was denied. Please enable it in your browser settings and try again.
                                 </span>
-                          </div>
+                              </div>
                             </div>
                           )}
-                          </div>
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                    {/* Step 3: Social Profiles */}
+                    {/* Step 3: LinkedIn Profile */}
                     {currentStep === 3 && (
                       <div className="space-y-8 text-center">
                         <div className="space-y-4">
                           <h2 className="text-4xl font-bold text-gray-900">
-                            Social Profiles
+                            LinkedIn Profile
                           </h2>
                           <p className="text-lg text-gray-600">
-                            Add your professional profiles (optional)
+                            Add your LinkedIn profile link (optional)
                           </p>
                         </div>
-                        <div className="max-w-md mx-auto space-y-4">
-                          {/* LinkedIn */}
-                          <div>
-                            <label className="text-sm font-medium text-gray-700 block mb-2 text-left">
-                              LinkedIn Profile
-                          </label>
-                            <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent hover:border-gray-300 transition-colors">
-                              <div className="flex items-center px-4 py-4 bg-gray-100 border-r border-gray-200">
-                             
-                                <span className="text-gray-700 font-medium text-lg">
-                                  linkedin.com/in/
-                                </span>
-                              </div>
-                              <Input
-                                placeholder="your-profile"
-                                value={linkedinProfile}
-                                onChange={(e) => setLinkedinProfile(e.target.value)}
-                                className="border-0 bg-transparent py-4 text-lg focus:ring-0 flex-1 rounded-none"
-                              />
-                         </div>
-                      </div>
-                          {/* GitHub */}
-                          <div>
-                            <label className="text-sm font-medium text-gray-700 block mb-2 text-left">
-                              GitHub Profile
-                            </label>
-                            <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent hover:border-gray-300 transition-colors">
-                              <div className="flex items-center px-4 py-4 bg-gray-100 border-r border-gray-200">
-                                <GithubIcon className="h-6 w-6 text-gray-600 mr-2" />
-                                <span className="text-gray-700 font-medium text-lg">
-                                  github.com/
-                                </span>
-                              </div>
-                              <Input
-                                placeholder="username"
-                                value={githubProfile}
-                                onChange={(e) => setGithubProfile(e.target.value)}
-                                className="border-0 bg-transparent py-4 text-lg focus:ring-0 flex-1 rounded-none"
-                              />
+                        <div className="max-w-md mx-auto">
+                          <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent hover:border-gray-300 transition-colors">
+                            <div className="flex items-center px-4 py-4 bg-gray-100 border-r border-gray-200">
+                       
+                              <span className="text-gray-700 font-medium text-lg">
+                                linkedin.com/in/
+                              </span>
                             </div>
+                            <Input
+                              placeholder="your-profile"
+                              value={linkedinProfile}
+                              onChange={(e) => setLinkedinProfile(e.target.value)}
+                              className="border-0 bg-transparent py-4 text-lg focus:ring-0 flex-1 rounded-none"
+                            />
                           </div>
                         </div>
-                    </div>
-                  )}
+                      </div>
+                    )}
 
                     {/* Step 4: Ready to Start */}
                     {currentStep === 4 && (
@@ -1132,55 +1076,55 @@ function Call({ interview }: InterviewProps) {
                             Choose how you'd like to begin your interview
                             experience
                           </p>
-                </div>
+                        </div>
                         <div className="max-w-md mx-auto space-y-4">
-                   <AlertDialog>
-                     <AlertDialogTrigger asChild>
-                       <Button
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
                                 className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 font-semibold"
-                         disabled={
-                           isLoadingPractice || isLoadingInterview ||
-                           (!interview?.is_anonymous && (!isValidEmail || !name))
-                         }
-                       >
+                                disabled={
+                                  isLoadingPractice || isLoadingInterview ||
+                                  (!interview?.is_anonymous && (!isValidEmail || !name))
+                                }
+                              >
                                 <PlayIcon className="mr-3 h-6 w-6" />
                                 {isLoadingInterview ? <MiniLoader /> : "Start Interview"}
-                       </Button>
-                     </AlertDialogTrigger>
+                              </Button>
+                            </AlertDialogTrigger>
                             <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-white/20">
-                       <AlertDialogHeader>
+                              <AlertDialogHeader>
                                 <AlertDialogTitle className="text-2xl font-bold text-gray-900">Start Interview Directly?</AlertDialogTitle>
                                 <AlertDialogDescription className="text-gray-600 text-lg">
-                           Are you sure you want to start the interview without practicing? We recommend taking the short practice session first.
-                         </AlertDialogDescription>
-                       </AlertDialogHeader>
-                       <AlertDialogFooter>
+                                  Are you sure you want to start the interview without practicing? We recommend taking the short practice session first.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
                                 <AlertDialogCancel className="rounded-xl px-6 py-3">Cancel</AlertDialogCancel>
-                         <AlertDialogAction
+                                <AlertDialogAction
                                   className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl px-6 py-3 font-semibold"
-                           onClick={() => prepareToStartConversation(false)}
-                         >
-                           Continue to Interview
-                         </AlertDialogAction>
-                       </AlertDialogFooter>
-                     </AlertDialogContent>
-                   </AlertDialog>
-
-                  <Button
+                                  onClick={() => prepareToStartConversation(false)}
+                                >
+                                  Continue to Interview
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                          
+                          <Button
                             onClick={() => prepareToStartConversation(true)}
-                    variant="outline"
+                            variant="outline"
                             className="w-full border-2 border-blue-300 text-blue-700 hover:bg-blue-50 py-4 text-lg rounded-xl hover:border-blue-400 transition-all duration-300 transform hover:scale-105 font-semibold"
-                    disabled={
-                      isLoadingPractice || isLoadingInterview ||
-                      (!interview?.is_anonymous && (!isValidEmail || !name))
-                    }
-                  >
+                            disabled={
+                              isLoadingPractice || isLoadingInterview ||
+                              (!interview?.is_anonymous && (!isValidEmail || !name))
+                            }
+                          >
                             <BookOpenIcon className="mr-3 h-6 w-6" />
-                    {isLoadingPractice ? <MiniLoader /> : "Start Practice"}
-                  </Button>
-                </div>
-              </div>
-            )}
+                            {isLoadingPractice ? <MiniLoader /> : "Start Practice"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Navigation Buttons */}
@@ -1217,7 +1161,7 @@ function Call({ interview }: InterviewProps) {
               <>
                 {/* Interview Active View (Real or Practice) */}
                 {isStarted && !isEnded && !isOldUser && (
-                  <div className="fixed inset-0 bg-gray-50 flex flex-col z-50">
+                  <div className="min-h-screen bg-gray-50 flex flex-col">
                     {/* Header */}
                     {isPracticing && (
                       <div className="bg-yellow-100 border-b border-yellow-200 px-6 py-3">
@@ -1274,36 +1218,20 @@ function Call({ interview }: InterviewProps) {
                     <div className="flex-1 px-6 py-8">
                       <div className="max-w-4xl mx-auto">
                         {/* Conversation Layout */}
-                        <div className="grid grid-cols-2 gap-12 h-[400px] items-center relative overflow-hidden">
+                        <div className="grid grid-cols-2 gap-12 min-h-[400px] items-start relative">
                           {/* Subtle Divider */}
                           <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-gray-200 to-transparent transform -translate-x-1/2"></div>
 
                           {/* AI Interviewer Side (Left) */}
-                          <div className="flex items-center justify-start h-full pr-6 overflow-hidden">
-                            <p className={`${
-                              lastInterviewerResponse && lastInterviewerResponse.length > 300 
-                                ? 'text-lg' 
-                                : lastInterviewerResponse && lastInterviewerResponse.length > 200 
-                                ? 'text-xl' 
-                                : lastInterviewerResponse && lastInterviewerResponse.length > 100 
-                                ? 'text-2xl' 
-                                : 'text-3xl'
-                            } text-gray-900 leading-relaxed font-bold text-left break-words`}>
+                          <div className="space-y-8 pr-6">
+                            <p className="text-3xl text-gray-900 leading-relaxed font-bold">
                               {lastInterviewerResponse}
                             </p>
                           </div>
 
                           {/* User Response Side (Right) */}
-                          <div className="flex items-center justify-start h-full pl-6 overflow-hidden">
-                            <p className={`${
-                              lastUserResponse && lastUserResponse.length > 300 
-                                ? 'text-lg' 
-                                : lastUserResponse && lastUserResponse.length > 200 
-                                ? 'text-xl' 
-                                : lastUserResponse && lastUserResponse.length > 100 
-                                ? 'text-2xl' 
-                                : 'text-3xl'
-                            } text-gray-900 leading-relaxed font-bold text-left break-words`}>
+                          <div className="space-y-8 pl-6">
+                            <p className="text-3xl text-gray-900 leading-relaxed font-bold text-right">
                               {lastUserResponse}
                             </p>
                           </div>
@@ -1318,22 +1246,22 @@ function Call({ interview }: InterviewProps) {
                           {/* Interviewer */}
                           <div className="flex flex-col items-center space-y-3">
                             <div className="relative">
-                      <Image
+                              <Image
                                 src={interviewerImg || "/default-avatar.png"}
-                        alt="Image of the interviewer"
+                                alt="Image of the interviewer"
                                 width={64}
                                 height={64}
                                 className={`object-cover object-center rounded-full border-2 ${
-                          activeTurn === "agent"
+                                  activeTurn === "agent"
                                     ? "border-blue-300"
                                     : "border-gray-200"
-                        }`}
-                      />
-                    </div>
+                                }`}
+                              />
+                            </div>
                             <span className="text-sm font-medium text-gray-700">
                               Interviewer
                             </span>
-                  </div>
+                          </div>
 
                           {/* Candidate */}
                           <div className="flex flex-col items-center space-y-3">
@@ -1352,21 +1280,21 @@ function Call({ interview }: InterviewProps) {
                                 }`}
                               >
                                 {name ? name.charAt(0).toUpperCase() : 'U'}
-                    </div>
+                              </div>
 
                               {/* Microphone Status */}
                               <div
                                 className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center ${
                                   isMuted ? "bg-red-500" : "bg-green-500"
                                 }`}
-                      >
-                        {isMuted ? (
+                              >
+                                {isMuted ? (
                                   <MicOffIcon className="w-4 h-4 text-white" />
-                        ) : (
+                                ) : (
                                   <MicIcon className="w-4 h-4 text-white" />
-                        )}
-                    </div>
-                  </div>
+                                )}
+                              </div>
+                            </div>
                             <span className="text-sm font-medium text-gray-700">You</span>
                           </div>
                         </div>
@@ -1375,14 +1303,7 @@ function Call({ interview }: InterviewProps) {
 
                     {/* Controls */}
                     <div className="bg-white border-t px-6 py-4">
-                      <div className="max-w-4xl mx-auto flex items-center justify-center space-x-4 relative">
-                        {/* Mute Guide */}
-                        {showMuteGuide && (
-                          <div className="absolute -top-12 bg-gray-800 text-white text-xs px-3 py-2 rounded-lg shadow-lg animate-pulse">
-                            Click to unmute and speak
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
-                          </div>
-                        )}
+                      <div className="max-w-4xl mx-auto flex items-center justify-center space-x-4">
                         <Button
                           onClick={toggleMute}
                           variant={isMuted ? "destructive" : "default"}
@@ -1400,36 +1321,36 @@ function Call({ interview }: InterviewProps) {
                           )}
                         </Button>
 
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                         <Button
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
                               variant="destructive"
                               className="bg-red-500 hover:bg-red-600"
-                         >
+                            >
                               <PhoneOffIcon className="mr-2 w-4 h-4" />
                               End {isPracticing ? "Practice" : "Interview"}
-                         </Button>
-                      </AlertDialogTrigger>
-                       <AlertDialogContent>
-                         <AlertDialogHeader>
-                           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                           <AlertDialogDescription>
-                             {isPracticing
-                               ? "This will end the practice session."
-                               : "This action cannot be undone. This will end the interview."}
-                           </AlertDialogDescription>
-                         </AlertDialogHeader>
-                         <AlertDialogFooter>
-                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                           <AlertDialogAction
-                             className="bg-red-600 hover:bg-red-800"
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {isPracticing
+                                  ? "This will end the practice session."
+                                  : "This action cannot be undone. This will end the interview."}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-red-600 hover:bg-red-800"
                                 onClick={handleEndCall}
-                           >
-                              {isPracticing ? "End Practice" : "End Interview"}
-                           </AlertDialogAction>
-                         </AlertDialogFooter>
-                       </AlertDialogContent>
-                     </AlertDialog>
+                              >
+                                {isPracticing ? "End Practice" : "End Interview"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
 
@@ -1444,96 +1365,96 @@ function Call({ interview }: InterviewProps) {
                 )}
 
                 {/* Old User View */}
-            {isOldUser && (
-                  <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
-                 <XCircleIcon className="h-16 w-16 text-red-500 mb-4" />
-                 <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-                 <p className="text-center text-gray-600 mb-4 max-w-md">
-                   {interview?.is_anonymous
-                     ? "This interview has already been completed from this browser session."
-                     : "You have already responded to this interview, or the email provided is not permitted to respond."}
-                 </p>
-                 <p className="text-center text-gray-600">
-                   Please contact the sender if you believe this is an error.
-                 </p>
-               </div>
-            )}
+                {isOldUser && (
+                  <div className="flex flex-col items-center justify-center h-[60vh]">
+                    <XCircleIcon className="h-16 w-16 text-red-500 mb-4" />
+                    <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
+                    <p className="text-center text-gray-600 mb-4 max-w-md">
+                      {interview?.is_anonymous
+                        ? "This interview has already been completed from this browser session."
+                        : "You have already responded to this interview, or the email provided is not permitted to respond."}
+                    </p>
+                    <p className="text-center text-gray-600">
+                      Please contact the sender if you believe this is an error.
+                    </p>
+                  </div>
+                )}
 
                 {/* End View (After Real Call) */}
-            {isEnded && !isOldUser && !isPracticing && (
-                  <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
-                <CheckCircleIcon className="h-16 w-16 text-green-500 mb-4" />
-                <h1 className="text-2xl font-bold mb-2">Thank you!</h1>
-                <p className="text-center text-gray-600 mb-6 max-w-md">
-                  Your response has been submitted. You may now close this window.
-                </p>
-                    {!isFeedbackSubmitted && (
-                  <>
-                    <p className="text-center text-gray-600 mb-4 max-w-md">
-                      We&apos;d love to hear your feedback on the interview
-                      experience.
+                {isEnded && !isOldUser && !isPracticing && (
+                  <div className="flex flex-col items-center justify-center h-[60vh]">
+                    <CheckCircleIcon className="h-16 w-16 text-green-500 mb-4" />
+                    <h1 className="text-2xl font-bold mb-2">Thank you!</h1>
+                    <p className="text-center text-gray-600 mb-6 max-w-md">
+                      Your response has been submitted. You may now close this window.
                     </p>
-                    <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          className="bg-orange-500 hover:bg-orange-700 text-white"
-                          style={{
-                            backgroundColor: interview.theme_color ?? "#f97316",
-                            color: isLightColor(interview.theme_color ?? "#f97316")
-                              ? "black"
-                              : "white",
-                          }}
-                        >
-                          Provide Feedback
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Feedback</AlertDialogTitle>
-                        </AlertDialogHeader>
-                        <FeedbackForm email={!interview?.is_anonymous ? email : undefined} onSubmit={handleFeedbackSubmit} />
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </>
+                    {!isFeedbackSubmitted && (
+                      <>
+                        <p className="text-center text-gray-600 mb-4 max-w-md">
+                          We&apos;d love to hear your feedback on the interview
+                          experience.
+                        </p>
+                        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              className="bg-orange-500 hover:bg-orange-700 text-white"
+                              style={{
+                                backgroundColor: interview.theme_color ?? "#f97316",
+                                color: isLightColor(interview.theme_color ?? "#f97316")
+                                  ? "black"
+                                  : "white",
+                              }}
+                            >
+                              Provide Feedback
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Feedback</AlertDialogTitle>
+                            </AlertDialogHeader>
+                            <FeedbackForm email={!interview?.is_anonymous ? email : undefined} onSubmit={handleFeedbackSubmit} />
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </>
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
 
                 {/* End View (After Practice Call) */}
-            {isEnded && isPracticing && (
-                  <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50 py-8">
-                <CheckCircleIcon className="h-16 w-16 text-orange-500 mb-4" />
-                <h1 className="text-2xl font-bold mb-2">Practice Ended</h1>
-                <p className="text-center text-gray-600 mb-6 max-w-md">
-                   You have completed the practice session. Please enter your details below if required, then start the actual interview or exit.
-                 </p>
+                {isEnded && isPracticing && (
+                  <div className="flex flex-col items-center justify-center h-[auto] min-h-[60vh] py-8">
+                    <CheckCircleIcon className="h-16 w-16 text-orange-500 mb-4" />
+                    <h1 className="text-2xl font-bold mb-2">Practice Ended</h1>
+                    <p className="text-center text-gray-600 mb-6 max-w-md">
+                      You have completed the practice session. Please enter your details below if required, then start the actual interview or exit.
+                    </p>
 
-                 {/* Action Buttons After Practice */}
-                 <div className="flex space-x-4">
-                    <Button
-                       className="flex-1 h-10 rounded-lg"
-                       style={{
-                         backgroundColor: interview.theme_color ?? "#f97316",
-                         color: isLightColor(interview.theme_color ?? "#f97316")
-                           ? "black"
-                           : "white",
-                       }}
-                       disabled={isLoadingInterview || (!interview?.is_anonymous && (!isValidEmail || !name))}
-                       onClick={() => {
-                           console.log("[Practice Ended Button Click] Attempting to start real interview...");
-                           setIsEnded(false);
-                           setIsPracticing(false);
-                           setIsStarted(false);
-                           setLastInterviewerResponse("");
-                           setLastUserResponse("");
-                           setCallId("");
+                    {/* Action Buttons After Practice */}
+                    <div className="flex space-x-4">
+                      <Button
+                        className="flex-1 h-10 rounded-lg"
+                        style={{
+                          backgroundColor: interview.theme_color ?? "#f97316",
+                          color: isLightColor(interview.theme_color ?? "#f97316")
+                            ? "black"
+                            : "white",
+                        }}
+                        disabled={isLoadingInterview || (!interview?.is_anonymous && (!isValidEmail || !name))}
+                        onClick={() => {
+                          console.log("[Practice Ended Button Click] Attempting to start real interview...");
+                          setIsEnded(false);
+                          setIsPracticing(false);
+                          setIsStarted(false);
+                          setLastInterviewerResponse("");
+                          setLastUserResponse("");
+                          setCallId("");
                           setCurrentStep(4); // Go back to step 4 (ready to start)
-                       }}
-                     >
-                       {isLoadingInterview ? <MiniLoader/> : "Start Interview"}
-                    </Button>
-                 </div>
-               </div>
+                        }}
+                      >
+                        {isLoadingInterview ? <MiniLoader/> : "Start Interview"}
+                      </Button>
+                    </div>
+                  </div>
                 )}
               </>
             )}
@@ -1541,37 +1462,37 @@ function Call({ interview }: InterviewProps) {
             {/* Footer - Outside the card */}
             <div className="text-center mt-6">
               <p className="text-sm text-white/80">
-            Powered by{" "}
+                Powered by{" "}
                 <span className="font-bold text-orange-400">RapidScreen</span>
               </p>
-          </div>
+            </div>
           </div>
         </div>
       </div>
 
-        {/* --- Unmute Instruction Popup --- */}
-        <AlertDialog open={showUnmuteInstruction} onOpenChange={setShowUnmuteInstruction}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Microphone Muted</AlertDialogTitle>
-              <AlertDialogDescription>
-                Your microphone starts muted. Click the
-                <span className="inline-flex items-center mx-1 p-0.5 rounded bg-gray-200">
-                  <MicOffIcon className="h-3 w-3 mr-0.5"/> Unmute
-                </span>
+      {/* --- Unmute Instruction Popup --- */}
+      <AlertDialog open={showUnmuteInstruction} onOpenChange={setShowUnmuteInstruction}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Microphone Muted</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your microphone starts muted. Click the
+              <span className="inline-flex items-center mx-1 p-0.5 rounded bg-gray-200">
+                <MicOffIcon className="h-3 w-3 mr-0.5"/> Unmute
+              </span>
               button to speak during the interview.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={() => {
-                setShowUnmuteInstruction(false);
-                executeStartConversation();
-              }}>
-                Got it!
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => {
+              setShowUnmuteInstruction(false);
+              executeStartConversation();
+            }}>
+              Got it!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -69,7 +69,7 @@ const createInterviewerCard = () => {
       <Plus
         size={30}
         strokeWidth={2}
-        className="cursor-pointer bg-orange-500 hover:bg-orange-600 rounded-full text-white transition-colors duration-200"
+        className="cursor-pointer bg-orange-600 rounded-full text-white"
         onClick={() => setOpen(true)}
       />
       <Modal
@@ -176,7 +176,7 @@ const createInterviewerCard = () => {
           <div className="flex flex-row justify-end mr-4">
             <Button
               disabled={(name && image ? false : true) || isClicked}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-orange-600  hover:bg-orange-800"
               onClick={() => {
                 setIsClicked(true);
                 onSave();

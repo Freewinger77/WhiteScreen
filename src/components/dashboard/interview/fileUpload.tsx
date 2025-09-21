@@ -11,6 +11,7 @@ type Props = {
   setIsUploaded: (isUploaded: boolean) => void;
   fileName: string;
   setFileName: (fileName: string) => void;
+  setUploadedDocumentContext: (context: string) => void;
 };
 
 function FileUpload({
@@ -18,6 +19,7 @@ function FileUpload({
   setIsUploaded,
   fileName,
   setFileName,
+  setUploadedDocumentContext,
 }: Props) {
   const [uploading, setUploading] = useState(false);
 
@@ -46,6 +48,8 @@ function FileUpload({
         if (!result.success) {
           throw new Error(result.error);
         }
+        const fullText = result.text || "";
+        setUploadedDocumentContext(fullText);
         setIsUploaded(true);
       } catch (error) {
         console.log(error);
