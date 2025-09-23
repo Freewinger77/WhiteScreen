@@ -25,7 +25,7 @@ function SignUpPage() {
             <div className="mb-4">
               <Image 
                 src="/Group 2.png" 
-                alt="VocalHire Logo" 
+                alt="Rapidscreen Logo" 
                 width={280} 
                 height={120}
                 className="object-contain mx-auto"
@@ -95,7 +95,7 @@ function SignUpPage() {
             <div className="mb-3">
               <Image 
                 src="/Group 2.png" 
-                alt="VocalHire Logo" 
+                alt="Rapidscreen Logo" 
                 width={200} 
                 height={80}
                 className="object-contain mx-auto"

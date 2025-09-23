@@ -13,12 +13,12 @@ import { usePathname } from "next/navigation";
 const inter = Inter({ subsets: ["latin"] });
 
 const metadata = {
-  title: "VocalHire",
+  title: "Rapidscreen",
   description: "Voice AI-powered Interviews",
   openGraph: {
-    title: "VocalHire",
+    title: "Rapidscreen",
     description: "Voice AI-powered Interviews",
-    siteName: "VocalHire",
+    siteName: "Rapidscreen",
     images: [
       {
         url: "/Group 2.png",

@@ -1,8 +1,8 @@
-# vocalHire - AI-powered voice interviewer for hiring 💼
+# Rapidscreen - AI-powered voice interviewer for hiring 💼
 
-vocalHire is an open source platform for companies to conduct AI powered hiring interviews with their candidates.
+Rapidscreen is an open source platform for companies to conduct AI powered hiring interviews with their candidates.
 
-<img src="https://github.com/user-attachments/assets/fa92ade1-02ea-4332-b5ed-97056dea01c3" alt="vocalHire Logo" width="800">
+<img src="https://github.com/user-attachments/assets/fa92ade1-02ea-4332-b5ed-97056dea01c3" alt="Rapidscreen Logo" width="800">
 
 <div style="display: flex; flex-direction: row; gap: 20px; margin: 20px 0;">
   <picture>
@@ -27,7 +27,7 @@ vocalHire is an open source platform for companies to conduct AI powered hiring 
 1. Clone the project.
 
 ```bash
-git clone https://github.com/vocalHire/vocalHire.git
+git clone https://github.com/Rapidscreen/Rapidscreen.git
 ```
 
 2. Copy the existing environment template file
@@ -99,13 +99,13 @@ We recommend using [Vercel](https://vercel.com/) to host the app.
 
 ## Contributing
 
-If you'd like to contribute to vocalHire, feel free to fork the repository, make your changes, and submit a pull request. Contributions are welcomed and appreciated.
+If you'd like to contribute to Rapidscreen, feel free to fork the repository, make your changes, and submit a pull request. Contributions are welcomed and appreciated.
 
 For a detailed guide on contributing, read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 ## Show Your Support 🌟
 
-If you find vocalHire helpful, please consider giving us a star on GitHub! It helps us reach more developers and continue improving the project.
+If you find Rapidscreen helpful, please consider giving us a star on GitHub! It helps us reach more developers and continue improving the project.
 
 ## License
 

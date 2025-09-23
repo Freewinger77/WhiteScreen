@@ -1,19 +1,19 @@
 # Contributing
 
-Thanks for considering contributing to VocalHire!
+Thanks for considering contributing to Rapidscreen!
 
 ## Opening issues
 
-If you find a bug, please feel free to [open an issue](https://github.com/vocalHirepvocalHireUp/issues).
+If you find a bug, please feel free to [open an issue](https://github.com/Rapidscreen/Rapidscreen/issues).
 
 ## Fixing bugs
 
 Here’s a quick guide:
 
-1. [Fork this repository](https://github.com/vocalHirepvocalHireUp/fork) and then clone it locally:
+1. [Fork this repository](https://github.com/Rapidscreen/Rapidscreen/fork) and then clone it locally:
 
 ```bash
-git clone https://github.com/vocalHirepvocalHireUp
+git clone https://github.com/Rapidscreen/Rapidscreen
 ```
 
 2. Create a topic branch for your changes:
@@ -32,4 +32,4 @@ git push origin fix-for-that-thing
 
 ## Adding new features
 
-Thinking of adding a new feature? [Open an issue](https://github.com/vocalHirepvocalHireUp/issues) and let’s design it together.
+Thinking of adding a new feature? [Open an issue](https://github.com/Rapidscreen/Rapidscreen/issues) and let's design it together.
