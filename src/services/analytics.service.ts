@@ -43,7 +43,7 @@ export const generateInterviewAnalytics = async (payload: {
     );
 
     const baseCompletion = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",

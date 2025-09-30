@@ -91,7 +91,7 @@ Run the development server:
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://dashboard.rapidscreen.my](http://dashboard.rapidscreen.my) with your browser to see the result.
 
 ## Self Hosting
 

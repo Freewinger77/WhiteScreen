@@ -31,7 +31,7 @@ export const authOptions: any = {
                 code: params.code,
                 redirect_uri:
                   params.redirect_uri ||
-                  `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/auth/callback/linkedin`,
+                  `${process.env.NEXTAUTH_URL || "http://dashboard.rapidscreen.my"}/api/auth/callback/linkedin`,
                 client_id: "78ikzrty6iaist",
                 client_secret: "WPL_AP1.DJtx39ow7HReDlv6.s/48FA==",
               }),

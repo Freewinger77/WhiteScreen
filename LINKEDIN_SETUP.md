@@ -19,7 +19,7 @@ LINKEDIN_CLIENT_ID=78ikzrty6iaist
 LINKEDIN_CLIENT_SECRET=WPL_AP1.DJtx39ow7HReDlv6.s/48FA==
 
 # NextAuth Configuration
-NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_URL=http://dashboard.rapidscreen.my
 NEXTAUTH_SECRET=your-secret-key-here-change-in-production
 ```
 
@@ -37,7 +37,7 @@ In your LinkedIn Developer Console:
 1. Go to https://www.linkedin.com/developers/apps
 2. Select your app or create a new one
 3. Add these redirect URLs:
-   - `http://localhost:3000/api/auth/callback/linkedin` (for development)
+   - `http://dashboard.rapidscreen.my/api/auth/callback/linkedin` (for development)
    - `https://yourdomain.com/api/auth/callback/linkedin` (for production)
 4. Ensure these scopes are enabled:
    - `openid`
