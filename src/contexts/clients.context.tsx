@@ -47,6 +47,7 @@ export function ClientProvider({ children }: ClientProviderProps) {
       const response = await ClientService.getOrganizationById(
         organization?.id as string,
         organization?.name as string,
+        organization?.imageUrl as string,
       );
     } catch (error) {
       console.error(error);

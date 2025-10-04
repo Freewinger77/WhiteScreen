@@ -13,6 +13,8 @@ import FileUpload from "../fileUpload";
 import Modal from "@/components/dashboard/Modal";
 import InterviewerDetailsModal from "@/components/dashboard/interviewer/interviewerDetailsModal";
 import { Interviewer } from "@/types/interviewer";
+import { LogoUploader } from "@/components/dashboard/interview/logoUploader";
+import { useOrganization } from "@clerk/nextjs";
 
 interface Props {
   open: boolean;
@@ -23,6 +25,10 @@ interface Props {
   setIsUploaded: (isUploaded: boolean) => void;
   fileName: string;
   setFileName: (fileName: string) => void;
+  logoFile: File | null;
+  setLogoFile: (file: File | null) => void;
+  logoPreview: string | null;
+  setLogoPreview: (preview: string | null) => void;
 }
 
 function DetailsPopup({
@@ -34,8 +40,13 @@ function DetailsPopup({
   setIsUploaded,
   fileName,
   setFileName,
+  logoFile,
+  setLogoFile,
+  logoPreview,
+  setLogoPreview,
 }: Props) {
   const { interviewers } = useInterviewers();
+  const { organization } = useOrganization();
   const [isClicked, setIsClicked] = useState(false);
   const [openInterviewerDetails, setOpenInterviewerDetails] = useState(false);
   const [interviewerDetails, setInterviewerDetails] = useState<Interviewer>();
@@ -109,6 +120,7 @@ function DetailsPopup({
       description: generatedQuestionsResponse.description,
       is_anonymous: isAnonymous,
       job_context: jobContext.trim(),
+      logo_url: interviewData.logo_url ?? null,
     };
     setInterviewData(updatedInterviewData);
   };
@@ -127,6 +139,7 @@ function DetailsPopup({
       description: "",
       is_anonymous: isAnonymous,
       job_context: jobContext.trim(),
+      logo_url: interviewData.logo_url ?? null,
     };
     setInterviewData(updatedInterviewData);
   };
@@ -143,6 +156,48 @@ function DetailsPopup({
       setJobContext("");
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open && logoPreview && logoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(logoPreview);
+    }
+  }, [logoPreview, open]);
+
+  // Auto-populate organization logo from Clerk when modal opens
+  useEffect(() => {
+    if (open && organization?.imageUrl && !logoPreview && !logoFile) {
+      setLogoPreview(organization.imageUrl);
+      setInterviewData({
+        ...interviewData,
+        logo_url: organization.imageUrl,
+      });
+    }
+  }, [open, organization?.imageUrl]);
+
+  const handleLogoSelect = (file: File) => {
+    if (logoPreview && logoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(logoPreview);
+    }
+    const previewUrl = URL.createObjectURL(file);
+    setLogoPreview(previewUrl);
+    setLogoFile(file);
+    setInterviewData({
+      ...interviewData,
+      logo_url: previewUrl,
+    });
+  };
+
+  const handleLogoRemove = () => {
+    if (logoPreview && logoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(logoPreview);
+    }
+    setLogoPreview(null);
+    setLogoFile(null);
+    setInterviewData({
+      ...interviewData,
+      logo_url: null,
+    });
+  };
 
   return (
     <>
@@ -246,6 +301,28 @@ function DetailsPopup({
             setFileName={setFileName}
             setUploadedDocumentContext={setUploadedDocumentContext}
           />
+          <label className="flex-col mt-7 w-full">
+            <div className="flex items-center cursor-pointer">
+              <span className="text-sm font-medium">
+                Interview Logo
+              </span>
+            </div>
+            <span
+              style={{ fontSize: "0.7rem", lineHeight: "0.66rem" }}
+              className="font-light text-xs italic w-full text-left block mt-1 mb-2"
+            >
+              {organization?.imageUrl 
+                ? "Using your organization logo by default. Upload a custom logo to override."
+                : "Upload a custom logo for this interview (optional)."}
+            </span>
+            <div className="mt-3">
+              <LogoUploader
+                currentLogo={logoPreview || interviewData.logo_url || undefined}
+                onSelect={handleLogoSelect}
+                onRemove={handleLogoRemove}
+              />
+            </div>
+          </label>
           <label className="flex-col mt-7 w-full">
             <div className="flex items-center cursor-pointer">
               <span className="text-sm font-medium">

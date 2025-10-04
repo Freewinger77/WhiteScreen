@@ -9,14 +9,17 @@ import QuestionCard from "@/components/dashboard/interview/create-popup/question
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ChevronLeft } from "lucide-react";
+import { toast } from "sonner";
 
 interface Props {
   interviewData: InterviewBase;
+  logoFile: File | null;
+  logoPreview?: string | null;
   setProceed: (proceed: boolean) => void;
   setOpen: (open: boolean) => void;
 }
 
-function QuestionsPopup({ interviewData, setProceed, setOpen }: Props) {
+function QuestionsPopup({ interviewData, logoFile, logoPreview, setProceed, setOpen }: Props) {
   const { user } = useClerk();
   const { organization } = useOrganization();
   const [isClicked, setIsClicked] = useState(false);
@@ -72,23 +75,48 @@ function QuestionsPopup({ interviewData, setProceed, setOpen }: Props) {
       interviewData.questions = questions;
       interviewData.description = description;
 
-      // Convert BigInts to strings if necessary
+      let logoUrlPayload =
+        logoPreview && !logoPreview.startsWith("blob:")
+          ? logoPreview
+          : interviewData.logo_url ?? undefined;
+      if (typeof logoUrlPayload === "string" && logoUrlPayload.startsWith("blob:")) {
+        logoUrlPayload = undefined;
+      }
+
       const sanitizedInterviewData = {
         ...interviewData,
         interviewer_id: interviewData.interviewer_id.toString(),
         response_count: interviewData.response_count.toString(),
-        logo_url: organization?.imageUrl || "",
+        logo_url:
+          logoFile || logoUrlPayload !== undefined
+            ? logoUrlPayload ?? null
+            : organization?.imageUrl || null,
       };
 
-      const response = await axios.post("/api/create-interview", {
-        organizationName: organization?.name,
-        interviewData: sanitizedInterviewData,
+      const formData = new FormData();
+      formData.append("interviewData", JSON.stringify(sanitizedInterviewData));
+      if (logoFile) {
+        formData.append("logo", logoFile);
+      }
+
+      const response = await axios.post("/api/create-interview", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "x-organization-name": organization?.name || "",
+        },
       });
+
+      if (response.status === 200) {
+        toast.success("Interview created successfully.");
+      }
+
       setIsClicked(false);
       fetchInterviews();
       setOpen(false);
     } catch (error) {
       console.error("Error creating interview:", error);
+      toast.error("Failed to create interview. Please try again.");
+      setIsClicked(false);
     }
   };
 

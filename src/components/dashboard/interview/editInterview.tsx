@@ -27,6 +27,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { LogoUploader } from "@/components/dashboard/interview/logoUploader";
+import axios from "axios";
+import { getSupabaseStoragePathFromUrl } from "@/lib/storage";
+import { useOrganization } from "@clerk/nextjs";
 
 type EditInterviewProps = {
   interview: Interview | undefined;
@@ -35,6 +39,7 @@ type EditInterviewProps = {
 function EditInterview({ interview }: EditInterviewProps) {
   const { interviewers } = useInterviewers();
   const { fetchInterviews } = useInterviews();
+  const { organization } = useOrganization();
 
   const [description, setDescription] = useState<string>(
     interview?.description || "",
@@ -56,6 +61,10 @@ function EditInterview({ interview }: EditInterviewProps) {
   );
   const [isAnonymous, setIsAnonymous] = useState<boolean>(
     interview?.is_anonymous || false,
+  );
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(
+    interview?.logo_url || null,
   );
 
   const [isClicked, setIsClicked] = useState(false);
@@ -109,16 +118,48 @@ function EditInterview({ interview }: EditInterviewProps) {
       time_duration: Number(duration),
       description: description,
       is_anonymous: isAnonymous,
-    };
+    } as any;
+
+    if (logoFile) {
+      interviewData.logo_file = logoFile;
+    }
+
+    if (!logoFile) {
+      if (!logoPreview) {
+        // If no logo preview and no custom logo, use organization logo as fallback
+        interviewData.logo_url = organization?.imageUrl || null;
+      } else if (!logoPreview.startsWith("blob:")) {
+        interviewData.logo_url = logoPreview;
+      } else {
+        interviewData.logo_url = interview?.logo_url || organization?.imageUrl || null;
+      }
+    }
 
     try {
       if (!interview) {
         return;
       }
-      const response = await InterviewService.updateInterview(
-        interviewData,
-        interview?.id,
-      );
+
+      const formData = new FormData();
+      formData.append("payload", JSON.stringify(interviewData));
+      const existingLogoPath = getSupabaseStoragePathFromUrl(interview?.logo_url);
+      if (existingLogoPath) {
+        formData.append("existingLogoPath", existingLogoPath);
+      }
+      if (logoFile) {
+        formData.append("logo", logoFile);
+      }
+
+      const response = await axios.put(`/api/interviews/${interview.id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.status !== 200) {
+        throw new Error("Failed to update interview");
+      }
+
       setIsClicked(false);
       fetchInterviews();
       toast.success("Interview updated successfully.", {
@@ -128,6 +169,11 @@ function EditInterview({ interview }: EditInterviewProps) {
       router.push(`/interviews/${interview?.id}`);
     } catch (error) {
       console.error("Error creating interview:", error);
+      toast.error("Failed to update interview. Please try again.", {
+        position: "bottom-right",
+        duration: 3000,
+      });
+      setIsClicked(false);
     }
   };
 
@@ -278,6 +324,38 @@ function EditInterview({ interview }: EditInterviewProps) {
                 ))}
               </div>
             </div>
+          </div>
+          <div className="flex flex-col mt-3 w-1/2">
+            <p className="mb-1 font-medium">Interview Logo</p>
+            <span
+              style={{ fontSize: "0.7rem", lineHeight: "0.66rem" }}
+              className="font-light text-xs italic w-full text-left block mb-2"
+            >
+              {!logoPreview && organization?.imageUrl 
+                ? "No custom logo set. Organization logo will be used by default."
+                : logoPreview && !interview?.logo_url && organization?.imageUrl
+                ? "Using organization logo. Upload a custom logo to override."
+                : "Upload a custom logo for this interview (optional)."}
+            </span>
+            <LogoUploader
+              currentLogo={logoPreview || organization?.imageUrl || undefined}
+              onSelect={(file) => {
+                if (logoPreview && logoPreview.startsWith("blob:")) {
+                  URL.revokeObjectURL(logoPreview);
+                }
+                const previewUrl = URL.createObjectURL(file);
+                setLogoPreview(previewUrl);
+                setLogoFile(file);
+              }}
+              onRemove={() => {
+                if (logoPreview && logoPreview.startsWith("blob:")) {
+                  URL.revokeObjectURL(logoPreview);
+                }
+                setLogoPreview(null);
+                setLogoFile(null);
+              }}
+              disabled={isClicked}
+            />
           </div>
         </div>
         <label className="flex-col mt-2 ml-2 w-full">

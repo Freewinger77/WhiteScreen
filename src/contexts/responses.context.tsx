@@ -3,14 +3,14 @@
 import { ResponseService } from "@/services/responses.service";
 import React, { useContext } from "react";
 
-interface Response {
-  createResponse: (payload: any) => void;
-  saveResponse: (payload: any, call_id: string) => void;
+interface ResponseContextType {
+  createResponse: (payload: any) => Promise<any>;
+  saveResponse: (payload: any, call_id: string) => Promise<void>;
 }
 
-export const ResponseContext = React.createContext<Response>({
-  createResponse: () => {},
-  saveResponse: () => {},
+export const ResponseContext = React.createContext<ResponseContextType>({
+  createResponse: async () => null,
+  saveResponse: async () => {},
 });
 
 interface ResponseProviderProps {

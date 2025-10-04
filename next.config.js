@@ -21,6 +21,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "img.clerk.com",
       },
+      {
+        protocol: "https",
+        hostname: "dxikdfopxvffhpqudpua.supabase.co",
+      },
     ],
   },
   webpack: (webpackConfig, { webpack }) => {

@@ -21,6 +21,7 @@ const CreateEmptyInterviewData = (): InterviewBase => ({
   questions: [],
   description: "",
   response_count: BigInt(0),
+  logo_url: null,
 });
 
 function CreateInterviewModal({ open, setOpen }: Props) {
@@ -29,6 +30,8 @@ function CreateInterviewModal({ open, setOpen }: Props) {
   const [interviewData, setInterviewData] = useState<InterviewBase>(
     CreateEmptyInterviewData(),
   );
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   // Below for File Upload
   const [isUploaded, setIsUploaded] = useState(false);
@@ -47,9 +50,13 @@ function CreateInterviewModal({ open, setOpen }: Props) {
       setLoading(false);
       setProceed(false);
       setInterviewData(CreateEmptyInterviewData());
-      // Below for File Upload
       setIsUploaded(false);
       setFileName("");
+      if (logoPreview && logoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+      setLogoPreview(null);
+      setLogoFile(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -66,15 +73,19 @@ function CreateInterviewModal({ open, setOpen }: Props) {
           setLoading={setLoading}
           interviewData={interviewData}
           setInterviewData={setInterviewData}
-          // Below for File Upload
           isUploaded={isUploaded}
           setIsUploaded={setIsUploaded}
           fileName={fileName}
           setFileName={setFileName}
+          logoFile={logoFile}
+          setLogoFile={setLogoFile}
+          logoPreview={logoPreview}
+          setLogoPreview={setLogoPreview}
         />
       ) : (
         <QuestionsPopup
           interviewData={interviewData}
+          logoFile={logoFile}
           setProceed={setProceed}
           setOpen={setOpen}
         />

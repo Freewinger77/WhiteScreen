@@ -53,3 +53,17 @@ export function isLightColor(color: string) {
 
   return brightness > 155;
 }
+
+export function slugify(input?: string | null) {
+  if (!input) {
+    return "";
+  }
+
+  return convertToAscii(input)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}

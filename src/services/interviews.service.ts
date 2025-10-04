@@ -4,11 +4,17 @@ const supabase = createClientComponentClient();
 
 const getAllInterviews = async (userId: string, organizationId: string) => {
   try {
+    // Only show interviews that belong to the current organization
     const { data: clientData, error: clientError } = await supabase
       .from("interview")
       .select(`*`)
-      .or(`organization_id.eq.${organizationId},user_id.eq.${userId}`)
+      .eq("organization_id", organizationId)
       .order("created_at", { ascending: false });
+
+    if (clientError) {
+      console.error("Error fetching interviews:", clientError);
+      return [];
+    }
 
     return [...(clientData || [])];
   } catch (error) {

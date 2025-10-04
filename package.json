@@ -1,5 +1,5 @@
 {
-  "name": "Rapidscreen-app",
+  "name": "rapidscreen-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.901.0",
     "@clerk/clerk-js": "^4.65.5",
     "@clerk/nextjs": "5.1.5",
     "@emotion/react": "^11.11.4",
@@ -60,6 +61,7 @@
     "openai": "^4.6.0",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^4.10.38",
+    "Rapidscreen-app": "file:",
     "react": "^18",
     "react-audio-player": "^0.17.0",
     "react-color": "^2.19.3",
@@ -75,7 +77,6 @@
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^10.0.0",
-    "Rapidscreen-app": "file:",
     "vocalHirep-app": "file:",
     "yarn": "^1.22.22",
     "zod": "^3.22.4"

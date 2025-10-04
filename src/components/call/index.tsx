@@ -37,6 +37,8 @@ import { Interview } from "@/types/interview";
 import { FeedbackData } from "@/types/response";
 import { FeedbackService } from "@/services/feedback.service";
 import { FeedbackForm } from "@/components/call/feedbackForm";
+import { ClientService } from "@/services/clients.service";
+import { isCustomLogoUpload } from "@/lib/storage";
 import {
   TabSwitchWarning,
   useTabSwitchPrevention,
@@ -101,6 +103,7 @@ function Call({ interview }: InterviewProps) {
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [interviewerImg, setInterviewerImg] = useState("");
+  const [organizationLogo, setOrganizationLogo] = useState<string | null>(null);
   const [interviewTimeDuration, setInterviewTimeDuration] =
     useState<string>("1");
   const [time, setTime] = useState(0);
@@ -603,6 +606,21 @@ function Call({ interview }: InterviewProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [interview.interviewer_id]);
 
+  // Fetch organization logo if interview doesn't have a custom logo
+  useEffect(() => {
+    const fetchOrganizationLogo = async () => {
+      // Only fetch if interview has no custom logo uploaded
+      if (!isCustomLogoUpload(interview.logo_url) && interview.organization_id) {
+        const orgLogo = await ClientService.getOrganizationLogoById(
+          interview.organization_id
+        );
+        setOrganizationLogo(orgLogo);
+      }
+    };
+    fetchOrganizationLogo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interview.organization_id, interview.logo_url]);
+
   // --- Save Response Effect ---
   useEffect(() => {
     // Only save response if the call has ended AND it was NOT a practice session
@@ -787,9 +805,31 @@ function Call({ interview }: InterviewProps) {
         <div className="flex-1 flex flex-col justify-center p-12 text-white">
           <div className="max-w-2xl">
             {/* Icon */}
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl mb-8 shadow-2xl">
-              <UserIcon className="w-8 h-8 text-white" />
-             </div>
+            {isCustomLogoUpload(interview?.logo_url) ? (
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-2xl mb-8 shadow-2xl overflow-hidden">
+                  <Image
+                    src={interview.logo_url!}
+                    alt="Organization logo"
+                    width={64}
+                    height={64}
+                    className="object-contain h-full w-full"
+                  />
+                </div>
+              ) : organizationLogo ? (
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-2xl mb-8 shadow-2xl overflow-hidden">
+                  <Image
+                    src={organizationLogo}
+                    alt="Organization logo"
+                    width={64}
+                    height={64}
+                    className="object-contain h-full w-full"
+                  />
+                </div>
+              ) : (
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl mb-8 shadow-2xl">
+                  <UserIcon className="w-8 h-8 text-white" />
+                </div>
+              )}
 
             {/* Title - Fixed */}
             <h1 className="text-7xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">

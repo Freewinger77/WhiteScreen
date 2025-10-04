@@ -22,6 +22,7 @@ export interface InterviewBase {
   description: string;
   response_count: bigint;
   job_context?: string;
+  logo_url?: string | null;
 }
 
 export interface InterviewDetails {
@@ -33,7 +34,7 @@ export interface InterviewDetails {
   details: any;
   is_active: boolean;
   theme_color: string;
-  logo_url: string;
+  logo_url?: string | null;
   respondents: string[];
   readable_slug: string;
   show_feedback_form?: boolean;

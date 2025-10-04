@@ -45,7 +45,11 @@ function Interviews() {
         if (organization?.id) {
           if (orgFetchRef.current === organization.id) return;
           orgFetchRef.current = organization.id;
-          const data = await ClientService.getOrganizationById(organization.id);
+          const data = await ClientService.getOrganizationById(
+            organization.id,
+            organization.name,
+            organization.imageUrl
+          );
           if (data?.plan) {
             setCurrentPlan(data.plan);
             if (data.plan === "free_trial_over") {

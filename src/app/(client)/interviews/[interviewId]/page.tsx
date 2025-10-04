@@ -108,7 +108,11 @@ function InterviewHome({ params, searchParams }: Props) {
     const fetchOrganizationData = async () => {
       try {
         if (organization?.id) {
-          const data = await ClientService.getOrganizationById(organization.id);
+          const data = await ClientService.getOrganizationById(
+            organization.id,
+            organization.name,
+            organization.imageUrl
+          );
           if (data?.plan) {
             setCurrentPlan(data.plan);
           }
