@@ -59,11 +59,14 @@ const createInterviewer = async (payload: any) => {
   return data;
 };
 
-const getInterviewer = async (interviewerId: bigint) => {
+const getInterviewer = async (interviewerId: bigint | number) => {
+  // Convert to number to ensure compatibility with Supabase
+  const id = typeof interviewerId === 'bigint' ? Number(interviewerId) : interviewerId;
+  
   const { data: interviewerData, error: interviewerError } = await supabase
     .from("interviewer")
     .select("*")
-    .eq("id", interviewerId)
+    .eq("id", id)
     .single();
 
   if (interviewerError) {
@@ -75,8 +78,25 @@ const getInterviewer = async (interviewerId: bigint) => {
   return interviewerData;
 };
 
+const updateInterviewer = async (interviewerId: number, updates: any) => {
+  const { data, error } = await supabase
+    .from("interviewer")
+    .update(updates)
+    .eq("id", interviewerId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating interviewer:", error);
+    return null;
+  }
+
+  return data;
+};
+
 export const InterviewerService = {
   getAllInterviewers,
   createInterviewer,
   getInterviewer,
+  updateInterviewer,
 };

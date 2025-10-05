@@ -476,7 +476,12 @@ function Call({ interview }: InterviewProps) {
       const data = {
         mins: practiceMode ? "2" : interview?.time_duration,
         objective: interview?.objective,
-        questions: interview?.questions.map((q) => q.question).join(", "),
+        questions: interview?.questions
+          .map((q, index) => {
+            const maxFollowUps = q.follow_up_count === 1 ? 3 : q.follow_up_count === 2 ? 5 : 7;
+            return `Question ${index + 1} (follow_up_count: ${q.follow_up_count}, max ${maxFollowUps} follow-ups): ${q.question}`;
+          })
+          .join(", "),
         name: userName || "not provided",
         job_context: interview?.job_context || "No specific job context provided.",
       };
@@ -760,7 +765,9 @@ function Call({ interview }: InterviewProps) {
   const canProceedFromStep = (step: number) => {
     switch (step) {
       case 1:
-        return !interview?.is_anonymous && (session?.user || (name && isValidEmail));
+        // If anonymous: can always proceed
+        // If not anonymous: need session or valid name/email
+        return interview?.is_anonymous || session?.user || (name && isValidEmail);
       case 2:
         return micPermissionGranted;
       case 3:
@@ -942,14 +949,16 @@ function Call({ interview }: InterviewProps) {
                       <div className="space-y-8 text-center">
                         <div className="space-y-4">
                           <h2 className="text-4xl font-bold text-gray-900">
-                            Sign In
+                            {interview?.is_anonymous ? "Welcome" : "Sign In"}
                           </h2>
                           <p className="text-lg text-gray-600">
-                            Connect with LinkedIn or enter your details manually
+                            {interview?.is_anonymous 
+                              ? "This is an anonymous interview. Click Next to continue."
+                              : "Connect with LinkedIn or enter your details manually"}
                           </p>
                         </div>
                         <div className="max-w-md mx-auto space-y-6">
-                  {!interview?.is_anonymous && (
+                  {!interview?.is_anonymous ? (
                             <>
                       {session?.user ? (
                                 // LinkedIn authenticated - show success state
@@ -1008,6 +1017,15 @@ function Call({ interview }: InterviewProps) {
                                 </>
                               )}
                             </>
+                          ) : (
+                            <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-200">
+                              <p className="text-gray-700">
+                                This is an anonymous interview. No sign-in required!
+                              </p>
+                              <p className="text-sm text-gray-500 mt-2">
+                                Click "Next" to continue to the microphone setup.
+                              </p>
+                            </div>
                           )}
                         </div>
                       </div>

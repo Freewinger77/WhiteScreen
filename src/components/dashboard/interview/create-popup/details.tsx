@@ -13,7 +13,6 @@ import FileUpload from "../fileUpload";
 import Modal from "@/components/dashboard/Modal";
 import InterviewerDetailsModal from "@/components/dashboard/interviewer/interviewerDetailsModal";
 import { Interviewer } from "@/types/interviewer";
-import { LogoUploader } from "@/components/dashboard/interview/logoUploader";
 import { useOrganization } from "@clerk/nextjs";
 
 interface Props {
@@ -163,42 +162,6 @@ function DetailsPopup({
     }
   }, [logoPreview, open]);
 
-  // Auto-populate organization logo from Clerk when modal opens
-  useEffect(() => {
-    if (open && organization?.imageUrl && !logoPreview && !logoFile) {
-      setLogoPreview(organization.imageUrl);
-      setInterviewData({
-        ...interviewData,
-        logo_url: organization.imageUrl,
-      });
-    }
-  }, [open, organization?.imageUrl]);
-
-  const handleLogoSelect = (file: File) => {
-    if (logoPreview && logoPreview.startsWith("blob:")) {
-      URL.revokeObjectURL(logoPreview);
-    }
-    const previewUrl = URL.createObjectURL(file);
-    setLogoPreview(previewUrl);
-    setLogoFile(file);
-    setInterviewData({
-      ...interviewData,
-      logo_url: previewUrl,
-    });
-  };
-
-  const handleLogoRemove = () => {
-    if (logoPreview && logoPreview.startsWith("blob:")) {
-      URL.revokeObjectURL(logoPreview);
-    }
-    setLogoPreview(null);
-    setLogoFile(null);
-    setInterviewData({
-      ...interviewData,
-      logo_url: null,
-    });
-  };
-
   return (
     <>
       <div className="text-center w-[38rem]">
@@ -301,28 +264,30 @@ function DetailsPopup({
             setFileName={setFileName}
             setUploadedDocumentContext={setUploadedDocumentContext}
           />
-          <label className="flex-col mt-7 w-full">
-            <div className="flex items-center cursor-pointer">
-              <span className="text-sm font-medium">
-                Interview Logo
-              </span>
+          {organization?.imageUrl && (
+            <div className="flex-col mt-7 w-full">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Interview Logo</span>
+                <span className="text-xs text-gray-500">(using organization logo)</span>
+              </div>
+              <div className="mt-3 flex items-center gap-4">
+                <div className="h-16 w-16 rounded-xl border border-gray-200 flex items-center justify-center bg-white overflow-hidden">
+                  <Image
+                    src={organization.imageUrl}
+                    alt="Organization logo"
+                    width={64}
+                    height={64}
+                    className="object-contain h-full w-full"
+                  />
+                </div>
+                <span className="text-xs text-gray-600 italic">
+                  Your organization logo will be used for this interview.
+                  <br />
+                  You can upload a custom logo after creating the interview.
+                </span>
+              </div>
             </div>
-            <span
-              style={{ fontSize: "0.7rem", lineHeight: "0.66rem" }}
-              className="font-light text-xs italic w-full text-left block mt-1 mb-2"
-            >
-              {organization?.imageUrl 
-                ? "Using your organization logo by default. Upload a custom logo to override."
-                : "Upload a custom logo for this interview (optional)."}
-            </span>
-            <div className="mt-3">
-              <LogoUploader
-                currentLogo={logoPreview || interviewData.logo_url || undefined}
-                onSelect={handleLogoSelect}
-                onRemove={handleLogoRemove}
-              />
-            </div>
-          </label>
+          )}
           <label className="flex-col mt-7 w-full">
             <div className="flex items-center cursor-pointer">
               <span className="text-sm font-medium">
