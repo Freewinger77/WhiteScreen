@@ -20,7 +20,7 @@ const interviewerCard = ({ interviewer }: Props) => {
         onClick={() => setOpen(true)}
       >
         <CardContent className="p-0">
-          <div className="w-full h-28 overflow-hidden">
+          <div className="w-full h-28 overflow-hidden relative">
             <Image
               src={interviewer.image}
               alt="Picture of the interviewer"
@@ -28,8 +28,13 @@ const interviewerCard = ({ interviewer }: Props) => {
               height={40}
               className="w-full h-full object-cover object-center"
             />
+            {(interviewer.name === "Kaori" || interviewer.name === "Hideki") && (
+              <div className="absolute top-2 right-2 text-2xl">
+                🇯🇵
+              </div>
+            )}
           </div>
-          <CardTitle className="mt-3 text-base text-center">
+          <CardTitle className="mt-3 text-base text-center flex items-center justify-center gap-1">
             {interviewer.name}
           </CardTitle>
         </CardContent>

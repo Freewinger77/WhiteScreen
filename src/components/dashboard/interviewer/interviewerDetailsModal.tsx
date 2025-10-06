@@ -17,8 +17,9 @@ function InterviewerDetailsModal({ interviewer }: Props) {
 
   return (
     <div className="text-center w-[40rem]">
-      <CardTitle className="text-3xl text mt-0 p-0 font-semibold ">
+      <CardTitle className="text-3xl text mt-0 p-0 font-semibold flex items-center justify-center gap-2">
         {interviewer?.name}
+        {(interviewer?.name === "Kaori" || interviewer?.name === "Hideki") && " 🇯🇵"}
       </CardTitle>
       <div className="mt-1 p-2 flex flex-col justify-center items-center">
         <div className="flex flex-row justify-center space-x-10 items-center">

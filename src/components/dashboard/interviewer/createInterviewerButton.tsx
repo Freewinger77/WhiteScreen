@@ -11,10 +11,16 @@ function CreateInterviewerButton() {
 
   const createInterviewers = async () => {
     setIsLoading(true);
-    const response = await axios.get("/api/create-interviewer", {});
-    console.log(response);
-    setIsLoading(false);
-    InterviewerService.getAllInterviewers();
+    try {
+      const response = await axios.get("/api/create-interviewer", {});
+      console.log(response);
+      // Reload the page to show new interviewers
+      window.location.reload();
+    } catch (error) {
+      console.error("Error creating interviewers:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -33,8 +39,8 @@ function CreateInterviewerButton() {
               <Plus size={40} />
             </div>
           )}
-          <p className="my-3 mx-auto text-xs text-wrap w-fit text-center">
-            Create two Default Interviewers
+          <p className="my-3 mx-auto text-xs text-wrap w-fit text-center px-2">
+            🇯🇵 Create Japanese Interviewers
           </p>
         </CardContent>
       </Card>

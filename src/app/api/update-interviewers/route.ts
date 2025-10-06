@@ -35,7 +35,7 @@ export async function POST(req: Request) {
           type: "end_call",
           name: "end_call_1",
           description:
-            "End the call if the user uses goodbye phrases such as 'bye,' 'goodbye,' or 'have a nice day.' ",
+            "ユーザーが「さようなら」、「ありがとうございました」、「良い一日を」などの別れのフレーズを使用した場合に通話を終了します。(End the call if the user uses goodbye phrases such as 'さようなら,' 'ありがとうございました,' or 'よい一日を.')",
         },
       ],
     });
@@ -50,11 +50,21 @@ export async function POST(req: Request) {
         // Get the existing agent details
         const existingAgent = await retellClient.agent.retrieve(interviewer.agent_id);
         
-        // Create a NEW agent with the updated prompt
+        // Determine Japanese voice based on agent name
+        let voiceId = existingAgent.voice_id;
+        if (existingAgent.agent_name === "Kaori" || existingAgent.agent_name === "Lisa") {
+          voiceId = "custom_voice_b1cb3cc263daeba837eacc2706"; // Kaori - Female
+        } else if (existingAgent.agent_name === "Hideki" || existingAgent.agent_name === "Bob") {
+          voiceId = "custom_voice_7ea6ce44c489d0c27a241c29bf"; // Hideki - Male
+        }
+
+        // Create a NEW agent with the updated prompt and Japanese settings
         const newAgent = await retellClient.agent.create({
           response_engine: { llm_id: newModel.llm_id, type: "retell-llm" },
           responsiveness: 0.8,
-          voice_id: existingAgent.voice_id,
+          voice_id: voiceId,
+          voice_speed: 0.85,
+          language: "ja-JP",
           enable_backchannel: false,
           agent_name: existingAgent.agent_name,
         });
