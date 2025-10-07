@@ -27,9 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { LogoUploader } from "@/components/dashboard/interview/logoUploader";
 import axios from "axios";
-import { getSupabaseStoragePathFromUrl } from "@/lib/storage";
 import { useOrganization } from "@clerk/nextjs";
 
 type EditInterviewProps = {
@@ -61,10 +59,6 @@ function EditInterview({ interview }: EditInterviewProps) {
   );
   const [isAnonymous, setIsAnonymous] = useState<boolean>(
     interview?.is_anonymous || false,
-  );
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(
-    interview?.logo_url || null,
   );
 
   const [isClicked, setIsClicked] = useState(false);
@@ -118,41 +112,17 @@ function EditInterview({ interview }: EditInterviewProps) {
       time_duration: Number(duration),
       description: description,
       is_anonymous: isAnonymous,
+      logo_url: organization?.imageUrl || null, // Always use organization logo
     } as any;
-
-    if (logoFile) {
-      interviewData.logo_file = logoFile;
-    }
-
-    if (!logoFile) {
-      if (!logoPreview) {
-        // If no logo preview and no custom logo, use organization logo as fallback
-        interviewData.logo_url = organization?.imageUrl || null;
-      } else if (!logoPreview.startsWith("blob:")) {
-        interviewData.logo_url = logoPreview;
-      } else {
-        interviewData.logo_url = interview?.logo_url || organization?.imageUrl || null;
-      }
-    }
 
     try {
       if (!interview) {
         return;
       }
 
-      const formData = new FormData();
-      formData.append("payload", JSON.stringify(interviewData));
-      const existingLogoPath = getSupabaseStoragePathFromUrl(interview?.logo_url);
-      if (existingLogoPath) {
-        formData.append("existingLogoPath", existingLogoPath);
-      }
-      if (logoFile) {
-        formData.append("logo", logoFile);
-      }
-
-      const response = await axios.put(`/api/interviews/${interview.id}`, formData, {
+      const response = await axios.put(`/api/interviews/${interview.id}`, interviewData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       });
 
@@ -331,31 +301,19 @@ function EditInterview({ interview }: EditInterviewProps) {
               style={{ fontSize: "0.7rem", lineHeight: "0.66rem" }}
               className="font-light text-xs italic w-full text-left block mb-2"
             >
-              {!logoPreview && organization?.imageUrl 
-                ? "No custom logo set. Organization logo will be used by default."
-                : logoPreview && !interview?.logo_url && organization?.imageUrl
-                ? "Using organization logo. Upload a custom logo to override."
-                : "Upload a custom logo for this interview (optional)."}
+              Using your organization logo from Clerk
             </span>
-            <LogoUploader
-              currentLogo={logoPreview || organization?.imageUrl || undefined}
-              onSelect={(file) => {
-                if (logoPreview && logoPreview.startsWith("blob:")) {
-                  URL.revokeObjectURL(logoPreview);
-                }
-                const previewUrl = URL.createObjectURL(file);
-                setLogoPreview(previewUrl);
-                setLogoFile(file);
-              }}
-              onRemove={() => {
-                if (logoPreview && logoPreview.startsWith("blob:")) {
-                  URL.revokeObjectURL(logoPreview);
-                }
-                setLogoPreview(null);
-                setLogoFile(null);
-              }}
-              disabled={isClicked}
-            />
+            {organization?.imageUrl && (
+              <div className="h-16 w-16 rounded-xl border border-gray-200 flex items-center justify-center bg-white overflow-hidden">
+                <Image
+                  src={organization.imageUrl}
+                  alt="Organization logo"
+                  width={64}
+                  height={64}
+                  className="object-contain h-full w-full"
+                />
+              </div>
+            )}
           </div>
         </div>
         <label className="flex-col mt-2 ml-2 w-full">
@@ -404,11 +362,10 @@ function EditInterview({ interview }: EditInterviewProps) {
             />
           </div>
           <div className="flex flex-row items-center mt-5">
-            <h3 className="font-medium ">Duration (mins):</h3>
+            <h3 className="font-medium ">Expected Duration (mins):</h3>
             <input
               type="number"
               step="1"
-              max="10"
               min="1"
               className="border-2 text-center focus:outline-none bg-slate-100 rounded-md border-gray-500 w-14 px-2 py-0.5 ml-3"
               value={Number(duration)}
@@ -418,9 +375,6 @@ function EditInterview({ interview }: EditInterviewProps) {
                   value === "" ||
                   (Number.isInteger(Number(value)) && Number(value) > 0)
                 ) {
-                  if (Number(value) > 10) {
-                    value = "10";
-                  }
                   setDuration(Number(value));
                 }
               }}

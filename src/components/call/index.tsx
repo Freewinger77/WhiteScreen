@@ -252,14 +252,8 @@ function Call({ interview }: InterviewProps) {
     if (!isPracticing) {
       setCurrentTimeDuration(String(Math.floor(time / 100)));
     }
-    // Only auto-end based on interview duration if NOT practicing
-    if (
-      !isPracticing &&
-      Number(currentTimeDuration) == Number(interviewTimeDuration) * 60
-    ) {
-      webClient.stopCall();
-      setIsEnded(true);
-    }
+    // NOTE: Removed auto-end logic - interviews now continue until all questions are completed
+    // The AI agent will naturally end the call when the interview is complete
 
     return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -845,7 +839,7 @@ function Call({ interview }: InterviewProps) {
 
             <div className="flex items-center text-2xl text-blue-200 mb-6">
               <ClockIcon className="w-8 h-8 mr-4" />
-              Expected duration: {interviewTimeDuration} mins or less
+              Estimate duration: {interviewTimeDuration} minutes
                   </div>
 
             {/* Interview Description */}

@@ -334,11 +334,10 @@ function DetailsPopup({
               />
             </div>
             <div className="flex flex-row justify-center items-center">
-              <h3 className="text-sm font-medium ">Duration (mins):</h3>
+              <h3 className="text-sm font-medium ">Expected Duration (mins):</h3>
               <input
                 type="number"
                 step="1"
-                max="10"
                 min="1"
                 className="border-b-2 text-center focus:outline-none  border-gray-500 w-14 px-2 py-0.5 ml-3"
                 value={duration}
@@ -348,9 +347,6 @@ function DetailsPopup({
                     value === "" ||
                     (Number.isInteger(Number(value)) && Number(value) > 0)
                   ) {
-                    if (Number(value) > 10) {
-                      value = "10";
-                    }
                     setDuration(value);
                   }
                 }}
