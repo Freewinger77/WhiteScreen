@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import React, { useState, useEffect } from "react";
 import { useOrganization } from "@clerk/nextjs";
 import { useInterviews } from "@/contexts/interviews.context";
-import { Share2, Filter, Pencil, UserIcon, Eye, Palette } from "lucide-react";
+import { Share2, Filter, Pencil, UserIcon, Eye, Palette, FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
 import { ResponseService } from "@/services/responses.service";
@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { CandidateStatus } from "@/lib/enum";
 import LoaderWithText from "@/components/loaders/loader-with-text/loaderWithText";
+import { generateAllCandidatesPDF } from "@/lib/pdf-generator";
 
 interface Props {
   params: {
@@ -258,6 +259,30 @@ function InterviewHome({ params, searchParams }: Props) {
     );
   };
 
+  const handleDownloadAllCandidatesPDF = async () => {
+    try {
+      if (!responses || responses.length === 0) {
+        toast.error("No candidates to download.", {
+          position: "bottom-right",
+          duration: 3000,
+        });
+        return;
+      }
+
+      await generateAllCandidatesPDF(responses, interview);
+      toast.success("All candidates PDF downloaded successfully!", {
+        position: "bottom-right",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error generating all candidates PDF:", error);
+      toast.error("Failed to generate PDF.", {
+        position: "bottom-right",
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col w-full h-full m-2 bg-white">
       {loading ? (
@@ -279,6 +304,34 @@ function InterviewHome({ params, searchParams }: Props) {
               {String(responses?.length)}
             </div>
 
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className={
+                      "bg-transparent shadow-none relative text-xs text-orange-500 px-1 h-7 hover:scale-110 hover:bg-transparent"
+                    }
+                    variant={"secondary"}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleDownloadAllCandidatesPDF();
+                    }}
+                    disabled={!responses || responses.length === 0}
+                  >
+                    <FileText size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-zinc-300"
+                  side="bottom"
+                  sideOffset={4}
+                >
+                  <span className="text-black flex flex-row gap-4">
+                    Download All Reports
+                  </span>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>

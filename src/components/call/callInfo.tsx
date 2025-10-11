@@ -5,7 +5,7 @@ import { Analytics, CallData } from "@/types/response";
 import axios from "axios";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import ReactAudioPlayer from "react-audio-player";
-import { DownloadIcon, TrashIcon } from "lucide-react";
+import { DownloadIcon, TrashIcon, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ResponseService } from "@/services/responses.service";
@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/select";
 import { CandidateStatus } from "@/lib/enum";
 import { ArrowLeft } from "lucide-react";
+import { generateIndividualCandidatePDF } from "@/lib/pdf-generator";
+import { useInterviews } from "@/contexts/interviews.context";
 
 type CallProps = {
   call_id: string;
@@ -59,6 +61,7 @@ function CallInfo({
   const [candidateStatus, setCandidateStatus] = useState<string>("");
   const [interviewId, setInterviewId] = useState<string>("");
   const [tabSwitchCount, setTabSwitchCount] = useState<number>();
+  const { getInterviewById } = useInterviews();
 
   useEffect(() => {
     const fetchResponses = async () => {
@@ -154,6 +157,31 @@ function CallInfo({
     }
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      const interview = await getInterviewById(interviewId);
+      await generateIndividualCandidatePDF(
+        name,
+        email,
+        analytics,
+        call || null,
+        interview?.name || "Interview",
+        call?.recording_url,
+        call?.public_log_url
+      );
+      toast.success("PDF downloaded successfully!", {
+        position: "bottom-right",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF.", {
+        position: "bottom-right",
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <div className="h-screen z-[10] mx-2 mb-[100px] overflow-y-scroll">
       {isLoading ? (
@@ -199,6 +227,14 @@ function CallInfo({
                     </div>
                   </div>
                   <div className="flex flex-row mr-2 items-center gap-3">
+                    <Button
+                      onClick={handleDownloadPDF}
+                      className="bg-orange-500 hover:bg-orange-600 p-2"
+                      title="Download PDF Report"
+                    >
+                      <FileText size={16} className="mr-2" />
+                      Download PDF
+                    </Button>
                     <Select
                       value={candidateStatus}
                       onValueChange={async (newValue: string) => {

@@ -4,7 +4,7 @@ import { Interview } from "@/types/interview";
 import { Interviewer } from "@/types/interviewer";
 import { Response } from "@/types/response";
 import React, { useEffect, useState } from "react";
-import { UserCircleIcon, SmileIcon, Info } from "lucide-react";
+import { UserCircleIcon, SmileIcon, Info, FileText } from "lucide-react";
 import { useInterviewers } from "@/contexts/interviewers.context";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { CandidateStatus } from "@/lib/enum";
@@ -20,6 +20,9 @@ import DataTable, {
   TableData,
 } from "@/components/dashboard/interview/dataTable";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { generateAllCandidatesPDF } from "@/lib/pdf-generator";
+import { toast } from "sonner";
 
 type SummaryProps = {
   responses: Response[];
@@ -170,6 +173,30 @@ function SummaryInfo({ responses, interview }: SummaryProps) {
     setTableData(preparedData);
   }, [responses]);
 
+  const handleDownloadAllCandidatesPDF = async () => {
+    try {
+      if (!responses || responses.length === 0) {
+        toast.error("No candidates to download.", {
+          position: "bottom-right",
+          duration: 3000,
+        });
+        return;
+      }
+
+      await generateAllCandidatesPDF(responses, interview);
+      toast.success("All candidates PDF downloaded successfully!", {
+        position: "bottom-right",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error generating all candidates PDF:", error);
+      toast.error("Failed to generate PDF.", {
+        position: "bottom-right",
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <div className="h-screen z-[10] mx-2">
       {responses.length > 0 ? (
@@ -178,10 +205,20 @@ function SummaryInfo({ responses, interview }: SummaryProps) {
             <div className="flex flex-row gap-2 items-center">
               <p className="font-semibold my-2">Overall Analysis</p>
             </div>
-            <p className="text-sm">
-              Interviewer used:{" "}
-              <span className="font-medium">{interviewer?.name}</span>
-            </p>
+            <div className="flex flex-row gap-3 items-center">
+              <Button
+                onClick={handleDownloadAllCandidatesPDF}
+                className="bg-orange-500 hover:bg-orange-600 text-white text-xs h-8"
+                disabled={!responses || responses.length === 0}
+              >
+                <FileText size={14} className="mr-2" />
+                Download All Reports
+              </Button>
+              <p className="text-sm">
+                Interviewer used:{" "}
+                <span className="font-medium">{interviewer?.name}</span>
+              </p>
+            </div>
           </div>
           <p className="my-3 ml-2 text-sm">
             Interview Description:{" "}
