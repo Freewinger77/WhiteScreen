@@ -5,7 +5,7 @@ export interface Response {
   interview_id: string;
   duration: number;
   call_id: string;
-  details: any; // Contains attached_cv: { text, url, fileName } if CV was attached
+  details: any; // Contains attached_cv: { text, url, fileName }, linkedin_url, github_url if provided
   is_analysed: boolean;
   email: string;
   is_ended: boolean;
@@ -13,8 +13,14 @@ export interface Response {
   analytics: any;
   candidate_status: string;
   tab_switch_count: number;
-  // Legacy field - kept for backward compatibility with existing CV-only uploads
+  tab_switch_events?: Array<{ timestamp: number; duration: number }> | null;
+  // Profile info - stores LinkedIn or GitHub URL
+  profile_id?: string | null;
+  profile_type?: string | null; // "linkedin" | "github"
+  // CV URL (stored in Supabase 'candidate-cvs' bucket)
   cv_url?: string | null;
+  // Client-side recorded video URL (stored in Supabase 'videos' bucket)
+  video_url?: string | null;
 }
 
 // Individual custom metric score result

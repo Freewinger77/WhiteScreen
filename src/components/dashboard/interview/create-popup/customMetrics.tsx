@@ -201,272 +201,248 @@ function CustomMetricsPopup({ interviewData, setInterviewData, logoFile, onBack,
   );
 
   return (
-    <div className="w-full max-w-[38rem] min-w-[320px] min-h-[30rem] flex flex-col animate-slideInRight">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <button
-          onClick={onBack}
-          disabled={isSubmitting}
-          className="flex items-center text-gray-600 hover:text-gray-900 disabled:opacity-50"
-        >
-          <ChevronLeft className="h-5 w-5" />
-          <span className="text-sm">Back</span>
-        </button>
-        <h1 className="text-xl font-semibold">Evaluation Metrics</h1>
-        <div className="w-16" />
-      </div>
+    <div className="w-full animate-fadeIn">
+      <div className="rounded-2xl bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <button
+            onClick={onBack}
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back
+          </button>
 
-      {/* Step indicator */}
-      <div className="flex items-center justify-center gap-2 py-2">
-        <div className="w-8 h-1 bg-indigo-600 rounded" />
-        <div className="w-8 h-1 bg-indigo-600 rounded" />
-        <div className="w-8 h-1 bg-indigo-600 rounded" />
-      </div>
-
-      {/* Description */}
-      <div className="px-6 py-2">
-        <p className="text-sm text-gray-600 text-center">
-          Define custom metrics to evaluate candidates. This step is optional.
-        </p>
-      </div>
-
-      {/* Content */}
-      <ScrollArea className="flex-1 px-6">
-        {/* Weight indicator */}
-        {metrics.length > 0 && (
-          <div className="flex items-center gap-4 mb-4">
-            <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${
-                totalWeight === 10
-                  ? "bg-green-100 text-green-700"
-                  : "bg-amber-100 text-amber-700"
-              }`}
-            >
-              <span className="font-medium">Total Weight:</span>
-              <span className="font-bold">{totalWeight}/10</span>
-              {totalWeight !== 10 && <AlertCircle className="h-4 w-4" />}
-            </div>
-            {totalWeight !== 10 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={autoBalanceWeights}
-                className="text-xs text-indigo-600 hover:text-indigo-800"
-              >
-                Auto-balance weights
-              </Button>
+          <div className="flex items-center gap-2">
+            {metrics.length > 0 && (
+              <>
+                <div
+                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
+                    totalWeight === 10
+                      ? "bg-green-100 text-green-700"
+                      : "bg-amber-100 text-amber-700"
+                  }`}
+                >
+                  <span className="inline-flex h-2 w-2 rounded-full bg-current opacity-70" />
+                  Total Weight:{" "}
+                  <span className="font-semibold">{totalWeight}/10</span>
+                  {totalWeight !== 10 && <AlertCircle className="h-4 w-4" />}
+                </div>
+                {totalWeight !== 10 && (
+                  <button
+                    type="button"
+                    onClick={autoBalanceWeights}
+                    className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                  >
+                    Auto-balance Weights
+                  </button>
+                )}
+              </>
             )}
           </div>
-        )}
+        </div>
 
-        {/* Metrics list */}
-        <div className="space-y-4">
+        <div className="mt-6">
+          <h2 className="text-2xl font-semibold tracking-tight text-gray-900">
+            Custom Evaluation Metrics
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Define custom metrics to evaluate candidates. This step is optional.
+          </p>
+        </div>
+
+        <div className="mt-6 space-y-4">
           {metrics.map((metric, index) => (
             <div
               key={metric.id}
-              className={`border rounded-lg p-4 shadow-sm ${
-                metric.type === "boolean" 
-                  ? "border-purple-200 bg-purple-50" 
-                  : "border-gray-200 bg-white"
-              }`}
+              className="rounded-2xl border border-gray-200 bg-white p-5"
             >
-              <div className="flex items-start gap-3">
-                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-semibold flex-shrink-0">
-                  {index + 1}
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <p className="text-sm font-semibold text-gray-900">
+                  Metric {index + 1}
+                </p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleRemoveMetric(metric.id)}
+                  disabled={isSubmitting}
+                  className="h-7 rounded-full px-3 text-xs text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="mr-1 h-3 w-3" />
+                  Cancel
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label className="text-xs font-medium text-gray-600">
+                    Metric Title
+                  </label>
+                  <Input
+                    value={metric.title}
+                    onChange={(e) =>
+                      handleMetricChange(metric.id, "title", e.target.value)
+                    }
+                    placeholder={
+                      metric.type === "boolean"
+                        ? "Has relevant experience?"
+                        : "Technical Ability"
+                    }
+                    className="mt-2"
+                  />
                 </div>
-                <div className="flex-1 space-y-3">
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">
-                        Metric Title *
-                      </label>
-                      <Input
-                        value={metric.title}
-                        onChange={(e) =>
-                          handleMetricChange(metric.id, "title", e.target.value)
-                        }
-                        placeholder={metric.type === "boolean" ? "e.g., Has relevant experience?" : "e.g., Technical Ability"}
-                        className="text-sm"
-                      />
-                    </div>
-                    <div className="w-24">
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">
-                        Type
-                      </label>
-                      <Select
-                        value={metric.type || "scale"}
-                        onValueChange={(value: MetricType) =>
-                          handleMetricChange(metric.id, "type", value)
-                        }
-                      >
-                        <SelectTrigger className="text-xs h-9">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="scale">
-                            <div className="flex items-center gap-1">
-                              <Scale className="h-3 w-3" />
-                              <span>0-10</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="boolean">
-                            <div className="flex items-center gap-1">
-                              <ToggleLeft className="h-3 w-3" />
-                              <span>Yes/No</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="w-20">
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">
-                        Weight
-                      </label>
-                      <div className="flex items-center gap-1">
-                        <Slider
-                          value={[metric.weight]}
-                          onValueChange={(value) =>
-                            handleMetricChange(metric.id, "weight", value[0])
-                          }
-                          max={10}
-                          min={1}
-                          step={1}
-                          className="flex-1"
-                        />
-                        <span className="text-sm font-bold text-indigo-600 w-4 text-center">
-                          {metric.weight}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">
-                      {metric.type === "boolean" 
-                        ? "Question to check (Yes = 10, No = 1) *" 
-                        : "Description (What to evaluate) *"}
-                    </label>
-                    <Textarea
-                      value={metric.description}
-                      onChange={(e) =>
-                        handleMetricChange(metric.id, "description", e.target.value)
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600">
+                    Type
+                  </label>
+                  <Select
+                    value={metric.type || "scale"}
+                    onValueChange={(value: MetricType) =>
+                      handleMetricChange(metric.id, "type", value)
+                    }
+                  >
+                    <SelectTrigger className="mt-2 h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="scale">Scale (0-10)</SelectItem>
+                      <SelectItem value="boolean">Yes/No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600">
+                    Weight
+                  </label>
+                  <div className="mt-4 flex items-center gap-3">
+                    <Slider
+                      value={[metric.weight]}
+                      onValueChange={(value) =>
+                        handleMetricChange(metric.id, "weight", value[0])
                       }
-                      placeholder={metric.type === "boolean" 
-                        ? "e.g., Does the candidate have 3+ years of experience in the field?" 
-                        : "Describe what should be evaluated for this metric..."}
-                      rows={2}
-                      className="text-sm resize-none"
+                      max={10}
+                      min={1}
+                      step={1}
+                      className="flex-1"
                     />
+                    <span className="w-6 text-right text-sm font-semibold text-indigo-600">
+                      {metric.weight}
+                    </span>
                   </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="text-xs font-medium text-gray-600">
+                    Description (What to evaluate)
+                  </label>
+                  <Textarea
+                    value={metric.description}
+                    onChange={(e) =>
+                      handleMetricChange(metric.id, "description", e.target.value)
+                    }
+                    placeholder="Describe what should be evaluated for this metric..."
+                    rows={3}
+                    className="mt-2 resize-none"
+                  />
                   {metric.type === "boolean" && (
-                    <p className="text-xs text-purple-600 italic">
-                      ℹ️ Boolean metrics score 10 if YES, 1 if NO or not enough evidence
+                    <p className="mt-2 text-xs italic text-gray-500">
+                      Note: Boolean metrics score 10 if YES, 1 if NO or not
+                      enough evidence.
                     </p>
                   )}
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveMetric(metric.id)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 flex-shrink-0"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           ))}
-        </div>
 
-        {/* Add metric buttons */}
-        <div className="flex gap-2 mt-4 mb-4">
-          <Button
+          <button
             type="button"
-            variant="outline"
             onClick={() => handleAddMetric("scale")}
-            className="flex-1 border-dashed border-2 border-indigo-300 text-indigo-600 hover:bg-indigo-50 text-xs"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-300 bg-gray-50 py-5 text-sm font-medium text-gray-700 hover:border-gray-400"
           >
-            <Scale className="h-3 w-3 mr-1" />
-            Add Scale Metric
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleAddMetric("boolean")}
-            className="flex-1 border-dashed border-2 border-purple-300 text-purple-600 hover:bg-purple-50 text-xs"
-          >
-            <ToggleLeft className="h-3 w-3 mr-1" />
-            Add Yes/No Metric
-          </Button>
+            <Plus className="h-4 w-4" />
+            Add more metrics
+          </button>
+
           {metrics.length === 0 && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleUseDefaults}
-              className="border-indigo-300 text-indigo-600 hover:bg-indigo-50 text-xs"
-            >
-              Use Defaults
-            </Button>
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
+              <Scale className="mx-auto h-12 w-12 text-gray-300" />
+              <p className="mt-3 text-sm font-medium text-gray-700">
+                No custom metrics defined yet
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Standard evaluation criteria will be used if you skip this step.
+              </p>
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleUseDefaults}
+                  className="text-xs"
+                >
+                  Use Defaults
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleAddMetric("boolean")}
+                  className="text-xs"
+                >
+                  Add Yes/No Metric
+                </Button>
+              </div>
+            </div>
           )}
         </div>
 
-        {metrics.length === 0 && (
-          <div className="text-center py-6 bg-gray-50 rounded-lg">
-            <Scale className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">
-              No custom metrics defined yet.
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Standard evaluation criteria will be used if you skip this step.
-            </p>
-          </div>
-        )}
-      </ScrollArea>
-
-      {/* Footer buttons */}
-      <div className="flex items-center justify-between px-6 py-4 border-t">
-        <Button
-          variant="ghost"
-          onClick={handleSkipAndCreate}
-          disabled={isSubmitting}
-          className="text-gray-500"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Creating...
-            </>
-          ) : (
-            "Skip & Create Interview"
-          )}
-        </Button>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <Button
-                  onClick={handleCreateInterview}
-                  disabled={!isValid || isSubmitting}
-                  className="bg-indigo-600 hover:bg-indigo-800"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    "Create Interview"
-                  )}
-                </Button>
-              </span>
-            </TooltipTrigger>
-            {!isValid && metrics.length > 0 && (
-              <TooltipContent className="bg-red-600 text-white">
-                <p>Weights must sum to 10 and all fields must be filled</p>
-              </TooltipContent>
+        <div className="mt-8 flex items-center justify-end gap-3">
+          <Button
+            variant="secondary"
+            onClick={handleSkipAndCreate}
+            disabled={isSubmitting}
+            className="bg-white"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              "Skip & Create Interview"
             )}
-          </Tooltip>
-        </TooltipProvider>
+          </Button>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button
+                    onClick={handleCreateInterview}
+                    disabled={!isValid || isSubmitting}
+                    className="bg-black text-white hover:bg-black/90"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create Interview"
+                    )}
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!isValid && metrics.length > 0 && (
+                <TooltipContent className="bg-red-600 text-white">
+                  <p>Weights must sum to 10 and all fields must be filled</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
     </div>
   );

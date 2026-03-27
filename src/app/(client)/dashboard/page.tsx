@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useOrganization } from "@clerk/nextjs";
-import InterviewCard from "@/components/dashboard/interview/interviewCard";
+import { useOrganization, useUser } from "@clerk/nextjs";
+import InterviewCard, { InterviewCardSkeleton } from "@/components/dashboard/interview/interviewCard";
 import CreateInterviewCard from "@/components/dashboard/interview/createInterviewCard";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { InterviewService } from "@/services/interviews.service";
@@ -10,15 +10,16 @@ import { ClientService } from "@/services/clients.service";
 import { ResponseService } from "@/services/responses.service";
 import { useInterviews } from "@/contexts/interviews.context";
 import Modal from "@/components/dashboard/Modal";
-import { ArrowRight, Building, Folder, Gem, Plus } from "lucide-react";
+import { Folder, Gem, Plus } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 function Interviews() {
   const { interviews, interviewsLoading } = useInterviews();
-  const { organization } = useOrganization();
-  const [loading, setLoading] = useState<boolean>(true);
+  const { organization, isLoaded: orgLoaded } = useOrganization();
+  const { isLoaded: userLoaded } = useUser();
+  const [planCheckLoading, setPlanCheckLoading] = useState<boolean>(false);
   const [currentPlan, setCurrentPlan] = useState<string>("");
   const [allowedResponsesCount, setAllowedResponsesCount] =
     useState<number>(10);
@@ -27,14 +28,29 @@ function Interviews() {
   const hasCheckedPlanRef = useRef<boolean>(false);
   const orgFetchRef = useRef<string | null>(null);
 
+  // Full page skeleton loader
+  function PageSkeleton() {
+    return (
+      <main className="p-8 pt-0 ml-12 mr-auto rounded-md">
+        <div className="flex flex-col items-left">
+          <div className="h-8 w-48 bg-gray-200 rounded-lg mt-8 animate-pulse" />
+          <div className="h-4 w-64 bg-gray-100 rounded mt-2 animate-pulse" />
+          <div className="mt-6 flex flex-wrap gap-4">
+            <InterviewCardSkeleton />
+            <InterviewCardSkeleton />
+            <InterviewCardSkeleton />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   function InterviewsLoader() {
     return (
       <>
-        <div className="flex flex-row">
-          <div className="h-60 w-56 ml-1 mr-3 mt-3 flex-none animate-pulse rounded-xl bg-gray-300" />
-          <div className="h-60 w-56 ml-1 mr-3  mt-3 flex-none animate-pulse rounded-xl bg-gray-300" />
-          <div className="h-60 w-56 ml-1 mr-3 mt-3 flex-none animate-pulse rounded-xl bg-gray-300" />
-        </div>
+        <InterviewCardSkeleton />
+        <InterviewCardSkeleton />
+        <InterviewCardSkeleton />
       </>
     );
   }
@@ -43,7 +59,9 @@ function Interviews() {
     const fetchOrganizationData = async () => {
       try {
         if (organization?.id) {
-          if (orgFetchRef.current === organization.id) return;
+          if (orgFetchRef.current === organization.id) {
+            return;
+          }
           orgFetchRef.current = organization.id;
           const data = await ClientService.getOrganizationById(
             organization.id,
@@ -71,11 +89,15 @@ function Interviews() {
 
   useEffect(() => {
     const fetchResponsesCount = async () => {
-      if (!organization?.id || !interviews) return;
-      if (hasCheckedPlanRef.current) return;
+      if (!organization?.id || !interviews) {
+        return;
+      }
+      if (hasCheckedPlanRef.current) {
+        return;
+      }
       hasCheckedPlanRef.current = true;
 
-      setLoading(true);
+      setPlanCheckLoading(true);
       try {
         let totalResponses = 0;
         if (currentPlan !== "free_trial_over") {
@@ -88,9 +110,7 @@ function Interviews() {
         }
 
         if (totalResponses >= allowedResponsesCount && currentPlan === "free") {
-          if (currentPlan !== "free_trial_over") {
-            setCurrentPlan("free_trial_over");
-          }
+          setCurrentPlan("free_trial_over");
           try {
             for (const interview of interviews) {
               await InterviewService.updateInterview(
@@ -109,7 +129,7 @@ function Interviews() {
       } catch (error) {
         console.error("Error fetching responses:", error);
       } finally {
-        setLoading(false);
+        setPlanCheckLoading(false);
       }
     };
 
@@ -117,10 +137,15 @@ function Interviews() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organization?.id, interviews]);
 
+  // Show skeleton while Clerk is loading
+  if (!orgLoaded || !userLoaded) {
+    return <PageSkeleton />;
+  }
+
   // No organization empty state
   if (!organization) {
     return (
-      <main className="p-8 pt-0 ml-12 mr-auto rounded-md">
+      <main className="p-8 pt-0 ml-12 mr-auto rounded-md animate-fadeIn">
         <div className="flex flex-col items-center justify-center h-[80vh] max-w-md mx-auto text-center">
           <Folder className="h-20 w-20 text-gray-300 mb-6" />
           <h2 className="text-3xl font-semibold tracking-tight text-gray-700 mb-4">
@@ -130,7 +155,7 @@ function Interviews() {
             Add an organisation to start creating interviews across your website.
           </p>
           <Button 
-            className="bg-orange-600 hover:bg-orange-700 text-white rounded-full h-14 w-14 flex items-center justify-center"
+            className="bg-gray-900 hover:bg-gray-800 text-white rounded-full h-14 w-14 flex items-center justify-center transition-transform hover:scale-105"
             onClick={() => (document.querySelector('.cl-organizationSwitcherTrigger') as HTMLElement)?.click()}
           >
             <Plus size={24} />
@@ -141,30 +166,32 @@ function Interviews() {
   }
 
   return (
-    <main className="p-8 pt-0 ml-12 mr-auto rounded-md">
+    <main className="p-8 pt-0 ml-12 mr-auto rounded-md animate-fadeIn">
       <div className="flex flex-col items-left">
         <h2 className="mr-2 text-2xl font-semibold tracking-tight mt-8">
           My Interviews
         </h2>
-        <h3 className=" text-sm tracking-tight text-gray-600 font-medium ">
+        <h3 className="text-sm tracking-tight text-gray-600 font-medium">
           Start getting responses now!
         </h3>
-        <div className="relative flex items-center mt-1 flex-wrap">
+        <div className="mt-6 flex flex-wrap gap-4">
           {currentPlan == "free_trial_over" ? (
-            <Card className=" flex bg-gray-200 items-center border-dashed border-gray-700 border-2 hover:scale-105 ease-in-out duration-300 h-60 w-56 ml-1 mr-3 mt-4 rounded-xl shrink-0 overflow-hidden shadow-md">
+            <Card className="flex items-center justify-center border-dashed border-gray-300 border-2 h-60 w-56 rounded-2xl shrink-0 overflow-hidden bg-gray-50 shadow-sm animate-fadeIn">
               <CardContent className="flex items-center flex-col mx-auto">
                 <div className="flex flex-col justify-center items-center w-full overflow-hidden">
-                  <Plus size={90} strokeWidth={0.5} className="text-gray-700" />
+                  <Plus size={72} strokeWidth={1.2} className="text-gray-700" />
                 </div>
-                <CardTitle className="p-0 text-md text-center">
+                <CardTitle className="mt-3 p-0 text-sm font-medium text-center text-gray-800">
                   You cannot create any more interviews unless you upgrade
                 </CardTitle>
               </CardContent>
             </Card>
           ) : (
-            <CreateInterviewCard />
+            <div className="animate-fadeIn">
+              <CreateInterviewCard />
+            </div>
           )}
-          {interviewsLoading || loading ? (
+          {interviewsLoading ? (
             <InterviewsLoader />
           ) : (
             <>
@@ -221,7 +248,7 @@ function Interviews() {
               {interviews.map((item, index) => (
                 <div 
                   key={item.id} 
-                  className="animate-slideInUp"
+                  className="animate-fadeIn"
                   style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}
                 >
                   <InterviewCard

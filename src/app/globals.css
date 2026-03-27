@@ -342,3 +342,156 @@
     transform: translateY(-4px);
   }
 }
+
+/* Rotating gradient border animation - subtle glass effect */
+@property --gradient-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes gradientRotation {
+  0% {
+    --gradient-angle: 0deg;
+  }
+
+  100% {
+    --gradient-angle: 360deg;
+  }
+}
+
+.gradient-border-glow {
+  position: relative;
+  z-index: 1;
+}
+
+.gradient-border-glow::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  background: linear-gradient(var(--gradient-angle), rgba(139, 92, 246, 0.6), rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.6));
+  animation: gradientRotation 4s linear infinite;
+  border-radius: 1.25rem;
+  filter: blur(8px);
+  opacity: 0.6;
+  z-index: -2;
+}
+
+.gradient-border-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+/* Slide in from right animation (for instructions panel) */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.6s ease-out forwards;
+}
+
+/* Fade in animation */
+@keyframes fadeInSmooth {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-smooth {
+  animation: fadeInSmooth 0.5s ease-out forwards;
+}
+
+/* Vertical faded divider */
+.divider-faded-vertical {
+  position: relative;
+  width: 1px;
+  height: 50%;
+  background: linear-gradient(to bottom, transparent, rgba(156, 163, 175, 0.3) 20%, rgba(156, 163, 175, 0.3) 80%, transparent);
+}
+
+/* Progress Steps Bar - 3 Segmented */
+.steps {
+  --bg: #e8edf3;
+  --h: 6px;
+  --r: 999px;
+  --gap: 8px;
+  --c1: #7c3aed;
+  --c2: #06b6d4;
+  --c3: #22c55e;
+  width: min(360px, 80vw);
+  display: flex;
+  gap: var(--gap);
+}
+
+.step-segment {
+  flex: 1;
+  height: var(--h);
+  background: var(--bg);
+  border-radius: var(--r);
+  overflow: hidden;
+  position: relative;
+}
+
+.step-segment .fill {
+  height: 100%;
+  width: 0%;
+  border-radius: var(--r);
+  background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3));
+  background-size: 300% 100%;
+  animation: shimmer-slow 22s linear infinite;
+  opacity: 0;
+  transition: width 800ms cubic-bezier(.4, 0, .2, 1), opacity 600ms ease;
+}
+
+.step-segment.active .fill {
+  width: 100%;
+  opacity: 1;
+}
+
+@keyframes shimmer-slow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Step states - 2 steps only */
+.steps.step-1 .step-segment:nth-child(1) .fill {
+  width: 100%;
+  opacity: 1;
+}
+
+.steps.step-2 .step-segment:nth-child(1) .fill,
+.steps.step-2 .step-segment:nth-child(2) .fill {
+  width: 100%;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-segment .fill {
+    transition: none;
+    animation: none;
+  }
+}

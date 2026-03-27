@@ -56,11 +56,24 @@ interface CVUploadResult {
 
 export async function POST(req: Request) {
   try {
+    // Check required environment variables
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      logger.error("Missing Supabase configuration", { 
+        hasUrl: !!supabaseUrl, 
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY 
+      });
+      return NextResponse.json(
+        { error: "Server configuration error - Supabase not configured" },
+        { status: 500 }
+      );
+    }
+    
     // Initialize Supabase client inside handler (not at module level)
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = createClient(supabaseUrl, supabaseKey);
     
     const formData = await req.formData();
     const interviewId = formData.get("interviewId") as string;
@@ -304,8 +317,13 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     logger.error("Error in CV analysis:", error as Error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("CV Analysis Error Details:", {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: `Internal server error: ${errorMessage}` },
       { status: 500 }
     );
   }

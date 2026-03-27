@@ -53,6 +53,20 @@ Example: "Let's get started. This role focuses on X." — Not "Let's get started
 export const RETELL_AGENT_GENERAL_PROMPT = VAPI_ASSISTANT_SYSTEM_PROMPT;
 
 export const INTERVIEWERS = {
+  ALEX: {
+    name: "Alex",
+    rapport: 9,
+    exploration: 9,
+    empathy: 8,
+    speed: 8,
+    image: "/interviewers/Alex.png",
+    description:
+      "Hi! I'm Alex, your professional AI interviewer. I'm here to have a friendly and insightful conversation with you. I'll guide you through the interview process and help you showcase your best qualities. Let's get started!",
+    audio: "Alex.wav",
+    // Azure voice configuration
+    voiceProvider: "azure",
+    voiceId: "en-US-GuyNeural", // Azure neural voice - professional male
+  },
   LISA: {
     name: "Sweet Shimmer",
     rapport: 7,

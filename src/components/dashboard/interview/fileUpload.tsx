@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { Inbox } from "lucide-react";
+import { FileText, Inbox } from "lucide-react";
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { parsePdf } from "@/actions/parse-pdf";
@@ -64,34 +64,36 @@ function FileUpload({
   });
 
   return (
-    <div className="p-2 bg-white rounded-xl w-full h-24">
+    <div className="w-full">
       {!isUploaded ? (
         <div
           {...getRootProps({
             className:
-              "border-dashed border-2 rounded-xl cursor-pointer bg-gray-50 py-4 flex justify-center items-center flex-col",
+              "cursor-pointer py-6 flex justify-center items-center flex-col",
           })}
         >
           <input {...getInputProps()} />
-          <>
-            <>
-              <Inbox className="w-8 h-8 text-blue-500" />
-              <p className="mt-2 text-sm text-slate-400">Drop PDF Here</p>
-            </>
-          </>
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50">
+            <FileText className="h-5 w-5 text-red-500" />
+          </div>
+          <p className="mt-3 text-sm text-gray-700">
+            Drag and drop PDF here
+          </p>
+          {uploading && (
+            <p className="mt-2 text-xs text-gray-500">Reading PDF…</p>
+          )}
         </div>
       ) : (
-        <div className="text-left">
-          <p className="mt-2 text-sm text-slate-600">
-            File uploaded successfully. {fileName}
+        <div className="py-4 text-center">
+          <p className="text-sm text-gray-700">
+            ✓ {fileName}
           </p>
-          <p className="mt-2 text-xs text-slate-600">
-            Do you want to{" "}
+          <p className="mt-2 text-xs text-gray-500">
             <span
-              className="underline text-slate-950 cursor-pointer font-semibold"
+              className="cursor-pointer underline font-medium text-gray-700 hover:text-gray-900"
               onClick={() => setIsUploaded(false)}
             >
-              Reupload?
+              Reupload
             </span>
           </p>
         </div>

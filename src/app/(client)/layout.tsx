@@ -9,6 +9,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import SideMenu from "@/components/sideMenu";
 import { usePathname } from "next/navigation";
+import { PageTransitionProvider } from "@/components/PageTransition";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -56,20 +57,22 @@ export default function RootLayout({
           afterSignOutUrl={"/sign-in"}
         >
           <Providers>
-            {!pathname.includes("/sign-in") &&
-              !pathname.includes("/sign-up") && <Navbar />}
-            {pathname.includes("/sign-in") || pathname.includes("/sign-up") ? (
-              <div className="h-screen w-full">
-                {children}
-              </div>
-            ) : (
-              <div className="flex flex-row h-screen">
-                <SideMenu />
-                <div className="ml-[200px] pt-[64px] h-full overflow-y-auto flex-grow">
+            <PageTransitionProvider>
+              {!pathname.includes("/sign-in") &&
+                !pathname.includes("/sign-up") && <Navbar />}
+              {pathname.includes("/sign-in") || pathname.includes("/sign-up") ? (
+                <div className="h-screen w-full">
                   {children}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-row h-screen">
+                  <SideMenu />
+                  <div className="ml-[212px] pt-[68px] h-full overflow-y-auto flex-grow">
+                    {children}
+                  </div>
+                </div>
+              )}
+            </PageTransitionProvider>
             <Toaster
               toastOptions={{
                 classNames: {

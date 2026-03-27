@@ -1,5 +1,4 @@
 import { Question } from "@/types/interview";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import {
@@ -24,116 +23,128 @@ const questionCard = ({
 }: QuestionCardProps) => {
   return (
     <>
-      <Card className=" shadow-md mb-5 pb-3 ">
-        <CardContent className="p-2 mx-5">
-          <div className="flex flex-row justify-between mt-3 items-baseline ">
-            <CardTitle className="text-lg">Question {questionNumber}</CardTitle>
-            <div className="flex flex-row items-start space-x-1">
-              <h3 className="text-base font-semibold mr-2">Depth Level: </h3>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className={`text-xs h-7  hover:bg-indigo-800  ${
-                        questionData?.follow_up_count == 1
-                          ? "bg-indigo-600"
-                          : "opacity-50"
-                      } `}
-                      onClick={() =>
-                        onQuestionChange(questionData.id, {
-                          ...questionData,
-                          follow_up_count: 1,
-                        })
-                      }
-                    >
-                      Low
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-zinc-200">
-                    <p className="text-zinc-800">Brief follow-up</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className={`text-xs h-7  hover:bg-indigo-800 ${
-                        questionData?.follow_up_count == 2
-                          ? "bg-indigo-600"
-                          : "opacity-50"
-                      } `}
-                      onClick={() =>
-                        onQuestionChange(questionData.id, {
-                          ...questionData,
-                          follow_up_count: 2,
-                        })
-                      }
-                    >
-                      Medium
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-zinc-200">
-                    <p className="text-zinc-800">Moderate follow-up</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className={`text-xs h-7 hover:bg-indigo-800  ${
-                        questionData?.follow_up_count == 3
-                          ? "bg-indigo-600"
-                          : "opacity-50"
-                      } `}
-                      onClick={() =>
-                        onQuestionChange(questionData.id, {
-                          ...questionData,
-                          follow_up_count: 3,
-                        })
-                      }
-                    >
-                      High
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-zinc-200">
-                    <p className="text-zinc-800">In-depth follow-up</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+      <div className="rounded-2xl border border-gray-200 bg-white p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs text-gray-500">Question {questionNumber}</p>
           </div>
-          <div className="flex flex-row items-center">
-            <textarea
-              value={questionData?.question}
-              className="h-fit mt-3 pt-1 border-2 rounded-md w-full px-2 border-gray-400"
-              placeholder="e.g. Can you tell me about a challenging project you’ve worked on?"
-              rows={3}
-              onChange={(e) =>
-                onQuestionChange(questionData.id, {
-                  ...questionData,
-                  question: e.target.value,
-                })
-              }
-              onBlur={(e) =>
-                onQuestionChange(questionData.id, {
-                  ...questionData,
-                  question: e.target.value.trim(),
-                })
-              }
-            />
-            <Trash2
-              className="cursor-pointer ml-3"
-              color="red"
-              size={24}
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-800">
+              Depth Level:
+            </span>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    className={`h-7 rounded-md px-3 text-xs ${
+                      questionData?.follow_up_count == 1
+                        ? "bg-indigo-100 text-indigo-800 hover:bg-indigo-200"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                    variant="secondary"
+                    onClick={() =>
+                      onQuestionChange(questionData.id, {
+                        ...questionData,
+                        follow_up_count: 1,
+                      })
+                    }
+                  >
+                    Low
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-zinc-200">
+                  <p className="text-zinc-800">Brief follow-up</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    className={`h-7 rounded-md px-3 text-xs ${
+                      questionData?.follow_up_count == 2
+                        ? "bg-indigo-100 text-indigo-800 hover:bg-indigo-200"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                    variant="secondary"
+                    onClick={() =>
+                      onQuestionChange(questionData.id, {
+                        ...questionData,
+                        follow_up_count: 2,
+                      })
+                    }
+                  >
+                    Medium
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-zinc-200">
+                  <p className="text-zinc-800">Moderate follow-up</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    className={`h-7 rounded-md px-3 text-xs ${
+                      questionData?.follow_up_count == 3
+                        ? "bg-indigo-100 text-indigo-800 hover:bg-indigo-200"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                    variant="secondary"
+                    onClick={() =>
+                      onQuestionChange(questionData.id, {
+                        ...questionData,
+                        follow_up_count: 3,
+                      })
+                    }
+                  >
+                    High
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-zinc-200">
+                  <p className="text-zinc-800">In-depth follow-up</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <button
+              type="button"
+              className="ml-1 rounded-md p-2 text-gray-400 hover:bg-gray-50 hover:text-red-600"
               onClick={() => onDelete(questionData.id)}
-            />
+              aria-label="Delete question"
+            >
+              <Trash2 size={18} />
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        <textarea
+          value={questionData?.question}
+          className="mt-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          placeholder="e.g can you tell me a challenging problem you’ve worked on?"
+          rows={3}
+          onChange={(e) =>
+            onQuestionChange(questionData.id, {
+              ...questionData,
+              question: e.target.value,
+            })
+          }
+          onBlur={(e) =>
+            onQuestionChange(questionData.id, {
+              ...questionData,
+              question: e.target.value.trim(),
+            })
+          }
+        />
+      </div>
     </>
   );
 };

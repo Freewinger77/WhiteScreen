@@ -1,13 +1,13 @@
 "use client";
 
 import { useInterviews } from "@/contexts/interviews.context";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Call from "@/components/call";
 import VideoInterviewExperience from "@/components/call/VideoInterviewExperience";
 import Image from "next/image";
 import { ArrowUpRightSquareIcon } from "lucide-react";
 import { Interview } from "@/types/interview";
-import LoaderWithText from "@/components/loaders/loader-with-text/loaderWithText";
+import lottie from "lottie-web";
 
 // Feature flag for new video experience
 const USE_NEW_VIDEO_EXPERIENCE = true;
@@ -24,28 +24,43 @@ type PopupProps = {
   image: string;
 };
 
-function PopupLoader() {
+// New Lottie loader component - waits for animation to load before showing
+function LottieLoader() {
+  const lottieRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<any>(null);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (lottieRef.current && !animationRef.current) {
+      animationRef.current = lottie.loadAnimation({
+        container: lottieRef.current,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/35984/LEGO_loader_chrisgannon.json'
+      });
+      animationRef.current.setSpeed(3.24);
+      
+      // Wait for animation data to be ready
+      animationRef.current.addEventListener('data_ready', () => {
+        setIsReady(true);
+      });
+    }
+    
+    return () => {
+      if (animationRef.current) {
+        animationRef.current.destroy();
+        animationRef.current = null;
+      }
+    };
+  }, []);
+
   return (
-    <div className="bg-white rounded-md absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 md:w-[80%] w-[90%]">
-      <div className="h-[88vh] justify-center items-center rounded-lg border-2 border-b-4 border-r-4 border-black font-bold transition-all md:block dark:border-white">
-        <div className="relative flex flex-col items-center justify-center h-full">
-          <LoaderWithText />
-        </div>
+    <div className="h-screen w-screen flex items-center justify-center bg-white">
+      <div className={`text-center transition-opacity duration-300 ${isReady ? 'opacity-100' : 'opacity-0'}`}>
+        <div ref={lottieRef} className="w-64 h-64 mx-auto" />
+        <p className="text-gray-500 mt-4 animate-pulse">Loading your interview...</p>
       </div>
-      <a
-        className="flex flex-row justify-center align-middle mt-3"
-        href="https://rapidscreen.my/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <div className="text-center text-md font-semibold mr-2">
-          Powered by{" "}
-          <span className="font-bold">
-            <span className="text-orange-500">Rapid</span><span className="text-gray-400">Screen</span>
-          </span>
-        </div>
-        <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-orange-500" />
-      </a>
     </div>
   );
 }
@@ -89,6 +104,8 @@ function InterviewInterface({ params }: Props) {
   const [isActive, setIsActive] = useState(true);
   const { getInterviewById } = useInterviews();
   const [interviewNotFound, setInterviewNotFound] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
   useEffect(() => {
     if (interview) {
       setIsActive(interview?.is_active === true);
@@ -108,12 +125,66 @@ function InterviewInterface({ params }: Props) {
       } catch (error) {
         console.error(error);
         setInterviewNotFound(true);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchinterview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Show Lottie loader while fetching interview data
+  if (USE_NEW_VIDEO_EXPERIENCE && isLoading) {
+    return (
+      <div>
+        <div className="hidden md:block">
+          <LottieLoader />
+        </div>
+        <div className="md:hidden">
+          <LottieLoader />
+        </div>
+      </div>
+    );
+  }
+
+  // Interview not found
+  if (USE_NEW_VIDEO_EXPERIENCE && interviewNotFound) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
+        <div className="text-center bg-white/70 backdrop-blur-xl rounded-3xl p-10 max-w-md border border-white/50 shadow-2xl">
+          <Image
+            src="/invalid-url.png"
+            alt="Invalid URL"
+            width={150}
+            height={150}
+            className="mx-auto mb-6"
+          />
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">Invalid URL</h1>
+          <p className="text-gray-600">The interview link you&apos;re trying to access is invalid. Please check the URL and try again.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Interview not active
+  if (USE_NEW_VIDEO_EXPERIENCE && interview && !isActive) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
+        <div className="text-center bg-white/70 backdrop-blur-xl rounded-3xl p-10 max-w-md border border-white/50 shadow-2xl">
+          <Image
+            src="/closed.png"
+            alt="Closed"
+            width={150}
+            height={150}
+            className="mx-auto mb-6"
+          />
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">Interview Unavailable</h1>
+          <p className="text-gray-600">We are not currently accepting responses. Please contact the sender for more information.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Use new video experience
   if (USE_NEW_VIDEO_EXPERIENCE && interview && isActive) {
@@ -122,19 +193,19 @@ function InterviewInterface({ params }: Props) {
         <div className="hidden md:block">
           <VideoInterviewExperience 
             interview={interview}
-            interviewerName="Alex"
-            interviewerAvatar="/default-interviewer.svg"
+            interviewerName="James"
+            interviewerAvatar="/interviewers/Alex.png"
           />
         </div>
-        <div className="md:hidden flex flex-col items-center justify-center h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-          <div className="px-6 text-center">
-            <p className="text-white text-xl font-semibold mb-4">
+        <div className="md:hidden flex flex-col items-center justify-center h-screen bg-gradient-to-br from-slate-50 to-gray-100">
+          <div className="px-6 text-center bg-white/70 backdrop-blur-xl rounded-3xl p-8 mx-4 border border-white/50 shadow-2xl">
+            <p className="text-gray-900 text-xl font-semibold mb-4">
               {interview?.name}
             </p>
-            <p className="text-gray-300 mb-6">
+            <p className="text-gray-600 mb-6">
               Please use a PC or laptop for the best interview experience.
             </p>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-400 text-sm">
               Powered by{" "}
               <a
                 className="font-bold"
@@ -150,6 +221,7 @@ function InterviewInterface({ params }: Props) {
     );
   }
 
+  // Fallback to old experience
   return (
     <div>
       <div className="hidden md:block p-8 mx-auto form-container">
@@ -161,7 +233,7 @@ function InterviewInterface({ params }: Props) {
               image="/invalid-url.png"
             />
           ) : (
-            <PopupLoader />
+            <LottieLoader />
           )
         ) : !isActive ? (
           <PopUpMessage

@@ -1,6 +1,7 @@
+"use client";
+
 import { useState } from "react";
 import Image from "next/image";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import Modal from "@/components/dashboard/Modal";
 import { Interviewer } from "@/types/interviewer";
 import InterviewerDetailsModal from "@/components/dashboard/interviewer/interviewerDetailsModal";
@@ -9,31 +10,32 @@ interface Props {
   interviewer: Interviewer;
 }
 
-const interviewerCard = ({ interviewer }: Props) => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+const InterviewerCard = ({ interviewer }: Props) => {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <Card
-        className="p-0 inline-block cursor-pointer hover:scale-105 ease-in-out duration-300 h-40 w-36 ml-1 mr-3 rounded-xl shrink-0 overflow-hidden shadow-md"
+      <div
+        className="w-[200px] h-[200px] bg-[#F9F9FA] rounded-[20px] cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] flex flex-col items-center justify-center p-4"
         onClick={() => setOpen(true)}
       >
-        <CardContent className="p-0">
-          <div className="w-full h-28 overflow-hidden">
-            <Image
-              src={interviewer.image}
-              alt="Picture of the interviewer"
-              width={200}
-              height={40}
-              className="w-full h-full object-cover object-center"
-            />
-          </div>
-          <CardTitle className="mt-3 text-base text-center">
-            {interviewer.name}
-          </CardTitle>
-        </CardContent>
-      </Card>
+        {/* Avatar */}
+        <div className="w-28 h-28 rounded-full overflow-hidden bg-white flex items-center justify-center">
+          <Image
+            src={interviewer.image}
+            alt={`${interviewer.name}`}
+            width={112}
+            height={112}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        
+        {/* Name */}
+        <p className="mt-4 text-sm font-medium text-gray-900 text-center">
+          {interviewer.name}
+        </p>
+      </div>
+
       <Modal
         open={open}
         closeOnOutsideClick={true}
@@ -47,4 +49,4 @@ const interviewerCard = ({ interviewer }: Props) => {
   );
 };
 
-export default interviewerCard;
+export default InterviewerCard;

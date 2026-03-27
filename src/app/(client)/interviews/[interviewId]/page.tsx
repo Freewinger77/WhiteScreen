@@ -2,20 +2,37 @@
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useOrganization } from "@clerk/nextjs";
 import { useInterviews } from "@/contexts/interviews.context";
-import { Share2, Filter, Pencil, UserIcon, Eye, Palette, FileText, Upload, FileUp, RefreshCw } from "lucide-react";
+import {
+  Settings2,
+  Filter,
+  Pencil,
+  Clock,
+  CheckCircle2,
+  Users,
+  FileUp,
+  RefreshCw,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Smile,
+  UserCircle,
+  Calendar,
+  Info,
+  ExternalLink,
+  Settings,
+  X,
+} from "lucide-react";
 import axios from "axios";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useRouter } from "next/navigation";
 import { ResponseService } from "@/services/responses.service";
+import { usePageTransition } from "@/components/PageTransition";
 import { ClientService } from "@/services/clients.service";
 import { Interview } from "@/types/interview";
 import { Response } from "@/types/response";
 import { formatTimestampToDateHHMM } from "@/lib/utils";
 import CallInfo from "@/components/call/callInfo";
-import SummaryInfo from "@/components/dashboard/interview/summaryInfo";
 import { InterviewService } from "@/services/interviews.service";
 import EditInterview from "@/components/dashboard/interview/editInterview";
 import Modal from "@/components/dashboard/Modal";
@@ -24,12 +41,6 @@ import { ChromePicker } from "react-color";
 import SharePopup from "@/components/dashboard/interview/sharePopup";
 import CVUploader from "@/components/dashboard/interview/cvUploader";
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -37,8 +48,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CandidateStatus } from "@/lib/enum";
-import LoaderWithText from "@/components/loaders/loader-with-text/loaderWithText";
 import { generateAllCandidatesPDF } from "@/lib/pdf-generator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Props {
   params: {
@@ -57,58 +73,47 @@ function InterviewHome({ params, searchParams }: Props) {
   const [responses, setResponses] = useState<Response[]>();
   const { getInterviewById } = useInterviews();
   const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
-  const router = useRouter();
+  const { navigateWithTransition } = usePageTransition();
   const [isActive, setIsActive] = useState<boolean>(true);
   const [currentPlan, setCurrentPlan] = useState<string>("");
-  const [isGeneratingInsights, setIsGeneratingInsights] =
-    useState<boolean>(false);
-  const [isViewed, setIsViewed] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState<boolean>(false);
+  const [interviewLoading, setInterviewLoading] = useState<boolean>(true);
+  const [responsesLoading, setResponsesLoading] = useState<boolean>(true);
   const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
   const [themeColor, setThemeColor] = useState<string>("#4F46E5");
   const [iconColor, seticonColor] = useState<string>("#4F46E5");
   const { organization } = useOrganization();
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [isCVUploaderOpen, setIsCVUploaderOpen] = useState(false);
-  const [responseTab, setResponseTab] = useState<"interviews" | "cvs">("interviews");
+  const [mainTab, setMainTab] = useState<"all" | "interviews" | "cvs">("all");
+  const [sidebarTab, setSidebarTab] = useState<"interviews" | "cvs">("interviews");
   const [isReanalyzingCVs, setIsReanalyzingCVs] = useState(false);
-
-  const seeInterviewPreviewPage = () => {
-    const protocol = base_url?.includes("localhost") ? "http" : "https";
-    if (interview?.url) {
-      const url = interview?.readable_slug
-        ? `${protocol}://${base_url}/call/${interview?.readable_slug}`
-        : interview.url.startsWith("http")
-          ? interview.url
-          : `https://${interview.url}`;
-      window.open(url, "_blank");
-    } else {
-      console.error("Interview URL is null or undefined.");
-    }
-  };
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortColumn, setSortColumn] = useState<string>("weightedScore");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [showColumnSettings, setShowColumnSettings] = useState(false);
+  const [visibleMetrics, setVisibleMetrics] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchInterview = async () => {
+      setInterviewLoading(true);
       try {
         const response = await getInterviewById(params.interviewId);
         setInterview(response);
         setIsActive(response.is_active);
-        setIsViewed(response.is_viewed);
         setThemeColor(response.theme_color ?? "#4F46E5");
         seticonColor(response.theme_color ?? "#4F46E5");
-        setLoading(true);
       } catch (error) {
         console.error(error);
       } finally {
-        setLoading(false);
+        setInterviewLoading(false);
       }
     };
     if (!interview || !isGeneratingInsights) {
       fetchInterview();
     }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getInterviewById, params.interviewId, isGeneratingInsights]);
+  }, [params.interviewId]);
 
   useEffect(() => {
     const fetchOrganizationData = async () => {
@@ -127,35 +132,30 @@ function InterviewHome({ params, searchParams }: Props) {
         console.error("Error fetching organization data:", error);
       }
     };
-
     fetchOrganizationData();
   }, [organization]);
+
   useEffect(() => {
     const fetchResponses = async () => {
+      setResponsesLoading(true);
       try {
-        const response = await ResponseService.getAllResponses(
-          params.interviewId,
-        );
+        const response = await ResponseService.getAllResponses(params.interviewId);
         setResponses(response);
-        setLoading(true);
       } catch (error) {
         console.error(error);
       } finally {
-        setLoading(false);
+        setResponsesLoading(false);
       }
     };
-
     fetchResponses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDeleteResponse = (deletedCallId: string) => {
     if (responses) {
-      setResponses(
-        responses.filter((response) => response.call_id !== deletedCallId),
-      );
+      setResponses(responses.filter((response) => response.call_id !== deletedCallId));
       if (searchParams.call === deletedCallId) {
-        router.push(`/interviews/${params.interviewId}`);
+        navigateWithTransition(`/interviews/${params.interviewId}`);
       }
     }
   };
@@ -165,11 +165,10 @@ function InterviewHome({ params, searchParams }: Props) {
       await ResponseService.saveResponse({ is_viewed: true }, response.call_id);
       if (responses) {
         const updatedResponses = responses.map((r) =>
-          r.call_id === response.call_id ? { ...r, is_viewed: true } : r,
+          r.call_id === response.call_id ? { ...r, is_viewed: true } : r
         );
         setResponses(updatedResponses);
       }
-      setIsViewed(true);
     } catch (error) {
       console.error(error);
     }
@@ -179,64 +178,34 @@ function InterviewHome({ params, searchParams }: Props) {
     try {
       const updatedIsActive = !isActive;
       setIsActive(updatedIsActive);
-
-      await InterviewService.updateInterview(
-        { is_active: updatedIsActive },
-        params.interviewId,
-      );
-
+      await InterviewService.updateInterview({ is_active: updatedIsActive }, params.interviewId);
       toast.success("Interview status updated", {
-        description: `The interview is now ${
-          updatedIsActive ? "active" : "inactive"
-        }.`,
+        description: `The interview is now ${updatedIsActive ? "active" : "inactive"}.`,
         position: "bottom-right",
         duration: 3000,
       });
     } catch (error) {
       console.error(error);
-      toast.error("Error", {
-        description: "Failed to update the interview status.",
-        duration: 3000,
-      });
+      toast.error("Error", { description: "Failed to update the interview status.", duration: 3000 });
     }
   };
 
   const handleThemeColorChange = async (newColor: string) => {
     try {
-      await InterviewService.updateInterview(
-        { theme_color: newColor },
-        params.interviewId,
-      );
-
-      toast.success("Theme color updated", {
-        position: "bottom-right",
-        duration: 3000,
-      });
+      await InterviewService.updateInterview({ theme_color: newColor }, params.interviewId);
+      toast.success("Theme color updated", { position: "bottom-right", duration: 3000 });
     } catch (error) {
       console.error(error);
-      toast.error("Error", {
-        description: "Failed to update the theme color.",
-        duration: 3000,
-      });
+      toast.error("Error", { description: "Failed to update the theme color.", duration: 3000 });
     }
   };
 
   const handleCandidateStatusChange = (callId: string, newStatus: string) => {
-    setResponses((prevResponses) => {
-      return prevResponses?.map((response) =>
-        response.call_id === callId
-          ? { ...response, candidate_status: newStatus }
-          : response,
-      );
-    });
-  };
-
-  const openSharePopup = () => {
-    setIsSharePopupOpen(true);
-  };
-
-  const closeSharePopup = () => {
-    setIsSharePopupOpen(false);
+    setResponses((prevResponses) =>
+      prevResponses?.map((response) =>
+        response.call_id === callId ? { ...response, candidate_status: newStatus } : response
+      )
+    );
   };
 
   const refreshResponses = async () => {
@@ -248,9 +217,7 @@ function InterviewHome({ params, searchParams }: Props) {
     }
   };
 
-  const handleColorChange = (color: any) => {
-    setThemeColor(color.hex);
-  };
+  const handleColorChange = (color: any) => setThemeColor(color.hex);
 
   const applyColorChange = () => {
     if (themeColor !== iconColor) {
@@ -260,541 +227,726 @@ function InterviewHome({ params, searchParams }: Props) {
     setShowColorPicker(false);
   };
 
-  const filterResponses = () => {
-    if (!responses) {
-      return [];
+  // Custom metrics are hidden by default - user must enable them from settings
+
+  // Filter and sort for main table
+  const filterMainResponses = useMemo(() => {
+    if (!responses) return [];
+    let filtered = [...responses];
+    if (mainTab === "interviews") {
+      filtered = filtered.filter((r) => r?.details?.source !== "cv_upload");
+    } else if (mainTab === "cvs") {
+      filtered = filtered.filter((r) => r?.details?.source === "cv_upload");
     }
-    
-    // First filter by tab (interviews vs CVs)
-    let filtered = responses.filter((response) => {
-      const isCVUpload = response?.details?.source === "cv_upload";
-      if (responseTab === "cvs") {
-        return isCVUpload;
-      } else {
-        return !isCVUpload;
-      }
-    });
-    
-    // Then filter by status if not "ALL"
-    if (filterStatus !== "ALL") {
-      filtered = filtered.filter(
-        (response) => response?.candidate_status === filterStatus,
+    if (searchQuery) {
+      filtered = filtered.filter((r) =>
+        r?.name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
+    
+    // Sort the results
+    filtered.sort((a, b) => {
+      let aVal: number = 0;
+      let bVal: number = 0;
+      
+      if (sortColumn === "weightedScore") {
+        aVal = a?.analytics?.weightedOverallScore ?? a?.analytics?.overallScore ?? 0;
+        bVal = b?.analytics?.weightedOverallScore ?? b?.analytics?.overallScore ?? 0;
+      } else if (sortColumn === "overallScore") {
+        aVal = a?.analytics?.overallScore ?? 0;
+        bVal = b?.analytics?.overallScore ?? 0;
+      } else if (sortColumn.startsWith("metric_")) {
+        const metricId = sortColumn.replace("metric_", "");
+        const aMetric = a?.analytics?.customMetrics?.find((m: any) => m.metricId === metricId);
+        const bMetric = b?.analytics?.customMetrics?.find((m: any) => m.metricId === metricId);
+        aVal = aMetric?.score ?? 0;
+        bVal = bMetric?.score ?? 0;
+      }
+      
+      return sortDirection === "desc" ? bVal - aVal : aVal - bVal;
+    });
+    
+    return filtered;
+  }, [responses, mainTab, searchQuery, sortColumn, sortDirection]);
 
+  // Handle column sort
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "desc" ? "asc" : "desc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("desc");
+    }
+  };
+
+  // Toggle metric visibility
+  const toggleMetricVisibility = (metricId: string) => {
+    setVisibleMetrics((prev) =>
+      prev.includes(metricId) ? prev.filter((id) => id !== metricId) : [...prev, metricId]
+    );
+  };
+
+  // Filter for sidebar
+  const filterSidebarResponses = () => {
+    if (!responses) return [];
+    let filtered = responses.filter((r) => {
+      const isCVUpload = r?.details?.source === "cv_upload";
+      return sidebarTab === "cvs" ? isCVUpload : !isCVUpload;
+    });
+    if (filterStatus !== "ALL") {
+      filtered = filtered.filter((r) => r?.candidate_status === filterStatus);
+    }
     return filtered;
   };
-  
-  // Count for tabs
-  const interviewCount = responses?.filter(r => r?.details?.source !== "cv_upload").length || 0;
-  const cvCount = responses?.filter(r => r?.details?.source === "cv_upload").length || 0;
+
+  const interviewCount = responses?.filter((r) => r?.details?.source !== "cv_upload").length || 0;
+  const cvCount = responses?.filter((r) => r?.details?.source === "cv_upload").length || 0;
+  const totalResponses = responses?.length || 0;
+
+  // Calculate stats - duration is in seconds directly on response object
+  const avgDuration = responses && responses.length > 0
+    ? Math.round(responses.reduce((acc, r) => acc + (r?.duration || 0), 0) / responses.length)
+    : 0;
+  const avgDurationStr = avgDuration > 60 ? `${Math.floor(avgDuration / 60)}m ${avgDuration % 60}s` : `${avgDuration}s`;
+  const completionRate = responses && responses.length > 0
+    ? Math.round((responses.filter((r) => r?.is_analysed).length / responses.length) * 100)
+    : 0;
+
+  // Sentiment counts - from user feedback/call analysis
+  const sentimentCounts = useMemo(() => {
+    if (!responses) return { positive: 0, neutral: 0, negative: 0 };
+    return {
+      positive: responses.filter((r) => {
+        const sentiment = r?.details?.call_analysis?.user_sentiment?.toLowerCase() || 
+                         r?.analytics?.sentiment?.toLowerCase();
+        return sentiment === "positive";
+      }).length,
+      neutral: responses.filter((r) => {
+        const sentiment = r?.details?.call_analysis?.user_sentiment?.toLowerCase() || 
+                         r?.analytics?.sentiment?.toLowerCase();
+        return sentiment === "neutral";
+      }).length,
+      negative: responses.filter((r) => {
+        const sentiment = r?.details?.call_analysis?.user_sentiment?.toLowerCase() || 
+                         r?.analytics?.sentiment?.toLowerCase();
+        return sentiment === "negative";
+      }).length,
+    };
+  }, [responses]);
+
+  // Status counts
+  const statusCounts = {
+    selected: responses?.filter((r) => r?.candidate_status === "SELECTED").length || 0,
+    potential: responses?.filter((r) => r?.candidate_status === "POTENTIAL").length || 0,
+    notSelected: responses?.filter((r) => r?.candidate_status === "NOT_SELECTED").length || 0,
+    noStatus: responses?.filter((r) => !r?.candidate_status || r?.candidate_status === "NO_STATUS").length || 0,
+  };
 
   const handleReanalyzeCVs = async () => {
     if (cvCount === 0) {
-      toast.error("No CV responses to re-analyze", {
-        position: "bottom-right",
-        duration: 3000,
-      });
+      toast.error("No CV responses to re-analyze", { position: "bottom-right", duration: 3000 });
       return;
     }
-
     setIsReanalyzingCVs(true);
     try {
-      const response = await axios.post("/api/reanalyze-cv", {
-        interviewId: params.interviewId,
-      });
-
+      const response = await axios.post("/api/reanalyze-cv", { interviewId: params.interviewId });
       if (response.data.success) {
-        toast.success(response.data.message, {
-          position: "bottom-right",
-          duration: 5000,
-        });
-        // Refresh responses to show updated names
+        toast.success(response.data.message, { position: "bottom-right", duration: 5000 });
         await refreshResponses();
       }
     } catch (error: any) {
       console.error("Error re-analyzing CVs:", error);
-      toast.error(error?.response?.data?.error || "Failed to re-analyze CVs", {
-        position: "bottom-right",
-        duration: 3000,
-      });
+      toast.error(error?.response?.data?.error || "Failed to re-analyze CVs", { position: "bottom-right", duration: 3000 });
     } finally {
       setIsReanalyzingCVs(false);
     }
   };
 
   const handleDownloadAllCandidatesPDF = async () => {
+    if (!responses || responses.length === 0) {
+      toast.error("No candidates to download.", { position: "bottom-right", duration: 3000 });
+      return;
+    }
     try {
-      if (!responses || responses.length === 0) {
-        toast.error("No candidates to download.", {
-          position: "bottom-right",
-          duration: 3000,
-        });
-        return;
-      }
-
       await generateAllCandidatesPDF(responses, interview);
-      toast.success("All candidates PDF downloaded successfully!", {
-        position: "bottom-right",
-        duration: 3000,
-      });
+      toast.success("All candidates PDF downloaded successfully!", { position: "bottom-right", duration: 3000 });
     } catch (error) {
       console.error("Error generating all candidates PDF:", error);
-      toast.error("Failed to generate PDF.", {
-        position: "bottom-right",
-        duration: 3000,
-      });
+      toast.error("Failed to generate PDF.", { position: "bottom-right", duration: 3000 });
     }
   };
 
-  return (
-    <div className="flex flex-col w-full h-full m-2 bg-white">
-      {loading ? (
-        <div className="flex flex-col items-center justify-center h-[80%] w-full animate-fadeIn">
-          <LoaderWithText text="Loading interview..." />
-        </div>
-      ) : (
-        <div className="animate-fadeIn">
-          <div className="flex flex-row p-3 pt-4 justify-center gap-6 items-center sticky top-2 bg-white">
-            <div className="font-bold text-md">{interview?.name}</div>
+  const isLoading = interviewLoading || responsesLoading;
 
-            <div
-              className="w-5 h-5 rounded-full border-2 border-white shadow"
-              style={{ backgroundColor: iconColor }}
+  // If viewing a specific call or editing
+  if (searchParams.call || searchParams.edit) {
+    return (
+      <div className="flex h-full w-full">
+        <div className="flex-1 overflow-y-auto p-6">
+          {searchParams.call ? (
+            <CallInfo
+              call_id={searchParams.call}
+              onDeleteResponse={handleDeleteResponse}
+              onCandidateStatusChange={handleCandidateStatusChange}
             />
+          ) : (
+            <EditInterview interview={interview} />
+          )}
+        </div>
+      </div>
+    );
+  }
 
-            <div className="flex flex-row gap-3 my-auto">
-              <UserIcon className="my-auto" size={16} />:{" "}
-              {String(responses?.length)}
+  return (
+    <TooltipProvider>
+      <div className="flex h-[calc(100vh-68px)] w-full bg-white overflow-hidden">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {isLoading ? (
+            <div className="p-6 animate-fadeIn">
+              <div className="h-8 w-64 bg-gray-200 rounded animate-pulse mb-4" />
+              <div className="h-4 w-full max-w-2xl bg-gray-200 rounded animate-pulse mb-6" />
+              <div className="grid grid-cols-3 gap-4 mb-8">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+                ))}
+              </div>
+              <div className="h-96 bg-gray-100 rounded-2xl animate-pulse" />
             </div>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className={
-                      "bg-transparent shadow-none relative text-xs text-green-600 px-1 h-7 hover:scale-110 hover:bg-transparent"
-                    }
-                    variant={"secondary"}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setIsCVUploaderOpen(true);
-                    }}
-                  >
-                    <FileUp size={16} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-zinc-300"
-                  side="bottom"
-                  sideOffset={4}
-                >
-                  <span className="text-black flex flex-row gap-4">
-                    Upload CVs
-                  </span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            {cvCount > 0 && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
+          ) : (
+            <div className="flex flex-col h-full overflow-hidden">
+              {/* Header - Fixed */}
+              <div className="p-6 pb-4 flex-shrink-0">
+                <div className="flex items-center justify-between mb-4">
+                  <h1 className="text-xl font-semibold text-gray-900">{interview?.name}</h1>
+                  <div className="flex items-center gap-2">
                     <Button
-                      className={
-                        "bg-transparent shadow-none relative text-xs text-purple-600 px-1 h-7 hover:scale-110 hover:bg-transparent"
-                      }
-                      variant={"secondary"}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleReanalyzeCVs();
-                      }}
-                      disabled={isReanalyzingCVs}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-xs"
+                      onClick={handleDownloadAllCandidatesPDF}
                     >
-                      <RefreshCw size={16} className={isReanalyzingCVs ? "animate-spin" : ""} />
+                      <Settings2 size={14} />
+                      Download all reports
                     </Button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    className="bg-zinc-300"
-                    side="bottom"
-                    sideOffset={4}
-                  >
-                    <span className="text-black flex flex-row gap-4">
-                      {isReanalyzingCVs ? "Re-analyzing CVs..." : `Re-analyze ${cvCount} CV(s)`}
-                    </span>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className={
-                      "bg-transparent shadow-none relative text-xs text-orange-500 px-1 h-7 hover:scale-110 hover:bg-transparent"
-                    }
-                    variant={"secondary"}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleDownloadAllCandidatesPDF();
-                    }}
-                    disabled={!responses || responses.length === 0}
-                  >
-                    <FileText size={16} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-zinc-300"
-                  side="bottom"
-                  sideOffset={4}
-                >
-                  <span className="text-black flex flex-row gap-4">
-                    Download All Reports
-                  </span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className={
-                      "bg-transparent shadow-none relative text-xs text-indigo-600 px-1 h-7 hover:scale-110 hover:bg-transparent"
-                    }
-                    variant={"secondary"}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openSharePopup();
-                    }}
-                  >
-                    <Share2 size={16} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-zinc-300"
-                  side="bottom"
-                  sideOffset={4}
-                >
-                  <span className="text-black flex flex-row gap-4">Share</span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className="bg-transparent shadow-none text-xs text-indigo-600 px-0 h-7 hover:scale-110 relative"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      seeInterviewPreviewPage();
-                    }}
-                  >
-                    <Eye />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-zinc-300"
-                  side="bottom"
-                  sideOffset={4}
-                >
-                  <span className="text-black flex flex-row gap-4">
-                    Preview
-                  </span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className="bg-transparent shadow-none text-xs text-indigo-600 px-0 h-7 hover:scale-110 relative"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setShowColorPicker(!showColorPicker);
-                    }}
-                  >
-                    <Palette size={19} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-zinc-300"
-                  side="bottom"
-                  sideOffset={4}
-                >
-                  <span className="text-black flex flex-row gap-4">
-                    Theme Color
-                  </span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className="bg-transparent shadow-none text-xs text-indigo-600 px-0 h-7 hover:scale-110 relative"
-                    onClick={(event) => {
-                      router.push(
-                        `/interviews/${params.interviewId}?edit=true`,
-                      );
-                    }}
-                  >
-                    <Pencil size={16} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-zinc-300"
-                  side="bottom"
-                  sideOffset={4}
-                >
-                  <span className="text-black flex flex-row gap-4">Edit</span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <label className="inline-flex cursor-pointer">
-              {currentPlan == "free_trial_over" ? (
-                <>
-                  <span className="ms-3 my-auto text-sm">Inactive</span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipContent
-                        className="bg-zinc-300"
-                        side="bottom"
-                        sideOffset={4}
-                      >
-                        Upgrade your plan to reactivate
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </>
-              ) : (
-                <>
-                  <span className="ms-3 my-auto text-sm">Active</span>
-                  <Switch
-                    checked={isActive}
-                    className={`ms-3 my-auto ${
-                      isActive ? "bg-indigo-600" : "bg-[#E6E7EB]"
-                    }`}
-                    onCheckedChange={handleToggle}
-                  />
-                </>
-              )}
-            </label>
-          </div>
-          <div className="flex flex-row w-full p-2 h-[85%] gap-1 ">
-            <div className="w-[20%] flex flex-col p-2 divide-y-2 rounded-sm border-2 border-slate-100">
-              {/* Tabs for Interviews vs CVs */}
-              <div className="flex w-full border-b border-slate-200 mb-2">
-                <button
-                  onClick={() => setResponseTab("interviews")}
-                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                    responseTab === "interviews"
-                      ? "text-indigo-600 border-b-2 border-indigo-600"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  Interviews ({interviewCount})
-                </button>
-                <button
-                  onClick={() => setResponseTab("cvs")}
-                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                    responseTab === "cvs"
-                      ? "text-green-600 border-b-2 border-green-600"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  CVs ({cvCount})
-                </button>
-              </div>
-              
-              <div className="flex w-full justify-center py-2">
-                <Select
-                  onValueChange={async (newValue: string) => {
-                    setFilterStatus(newValue);
-                  }}
-                >
-                  <SelectTrigger className="w-[95%] bg-slate-100 rounded-lg">
-                    <Filter size={18} className=" text-slate-400" />
-                    <SelectValue placeholder="Filter By" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={CandidateStatus.NO_STATUS}>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-gray-400 rounded-full mr-2" />
-                        No Status
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={CandidateStatus.NOT_SELECTED}>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-red-500 rounded-full mr-2" />
-                        Not Selected
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={CandidateStatus.POTENTIAL}>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2" />
-                        Potential
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={CandidateStatus.SELECTED}>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2" />
-                        Selected
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="ALL">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 border-2 border-gray-300 rounded-full mr-2" />
-                        All
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <ScrollArea className="h-full p-1 rounded-md border-none">
-                {filterResponses().length > 0 ? (
-                  filterResponses().map((response, index) => (
-                    <div
-                      className={`p-2 rounded-md hover:bg-indigo-100 border-2 my-1 text-left text-xs ${
-                        searchParams.call == response.call_id
-                          ? "bg-indigo-200"
-                          : "border-indigo-100"
-                      } flex flex-row justify-between cursor-pointer w-full animate-slideInUp transition-all duration-200 hover:shadow-sm`}
-                      style={{ animationDelay: `${Math.min(index * 0.03, 0.2)}s` }}
-                      key={response?.id}
-                      onClick={() => {
-                        router.push(
-                          `/interviews/${params.interviewId}?call=${response.call_id}`,
-                        );
-                        handleResponseClick(response);
-                      }}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-xs"
+                      onClick={() => setIsCVUploaderOpen(true)}
                     >
-                      <div className="flex flex-row gap-1 items-center w-full">
-                        {response.candidate_status === "NOT_SELECTED" ? (
-                          <div className="w-[5%] h-full bg-red-500 rounded-sm" />
-                        ) : response.candidate_status === "POTENTIAL" ? (
-                          <div className="w-[5%] h-full bg-yellow-500 rounded-sm" />
-                        ) : response.candidate_status === "SELECTED" ? (
-                          <div className="w-[5%] h-full bg-green-500 rounded-sm" />
-                        ) : (
-                          <div className="w-[5%] h-full bg-gray-400 rounded-sm" />
-                        )}
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex flex-col my-auto">
-                            <p className="font-medium mb-[2px]">
-                              {response?.name
-                                ? `${response?.name}'s Response`
-                                : "Anonymous"}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {formatTimestampToDateHHMM(
-                                String(response?.created_at),
-                              )}
-                            </p>
+                      <FileUp size={14} />
+                      Upload CVs
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="rounded-2xl bg-[#FFF9E6] p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">Total Responses</span>
+                      <Users size={16} className="text-gray-400" />
+                    </div>
+                    <p className="mt-2 text-2xl font-bold text-gray-900">{totalResponses}</p>
+                  </div>
+                  <div className="rounded-2xl bg-[#F0F7FF] p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">Average Duration</span>
+                      <Clock size={16} className="text-gray-400" />
+                    </div>
+                    <p className="mt-2 text-2xl font-bold text-gray-900">{avgDurationStr}</p>
+                  </div>
+                  <div className="rounded-2xl bg-[#F0FFF4] p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">Interview Completion Rate</span>
+                      <CheckCircle2 size={16} className="text-gray-400" />
+                    </div>
+                    <p className="mt-2 text-2xl font-bold text-gray-900">{completionRate}%</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sort & Manage - Scrollable */}
+              <div className="flex-1 overflow-hidden flex flex-col px-6 min-h-0">
+                <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                  <h2 className="text-sm font-semibold text-gray-900">Sort & Manage</h2>
+                  <p className="text-xs text-gray-500">
+                    Interviewer used: <span className="font-medium text-gray-700">{interview?.interviewer_id ? "Empathetic Echo" : "None"}</span>
+                  </p>
+                </div>
+
+                {/* Tabs + Toolbar in same row */}
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-100 flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    {["all", "interviews", "cvs"].map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setMainTab(tab as any)}
+                        className={`px-5 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                          mainTab === tab
+                            ? "bg-gray-100 text-gray-900"
+                            : "text-gray-500 hover:bg-gray-50"
+                        }`}
+                      >
+                        {tab === "all" ? "All" : tab === "interviews" ? "Interviews" : "CVs"}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Settings for column visibility */}
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowColumnSettings(!showColumnSettings)}
+                        className={`p-1.5 rounded-lg hover:bg-gray-100 ${showColumnSettings ? "bg-gray-100" : ""}`}
+                      >
+                        <Settings size={14} className="text-gray-500" />
+                      </button>
+                      {showColumnSettings && interview?.custom_metrics && interview.custom_metrics.length > 0 && (
+                        <div className="absolute top-full right-0 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-medium text-gray-700">Show/Hide Metrics</span>
+                            <button onClick={() => setShowColumnSettings(false)} className="text-gray-400 hover:text-gray-600">
+                              <X size={14} />
+                            </button>
                           </div>
-                          <div className="flex items-center gap-2 ml-auto flex-shrink-0">
-                            {/* CV badges */}
-                            {response?.details?.source === "cv_upload" && (
-                              <span className="text-[9px] bg-purple-50 text-purple-600 border border-purple-200 px-1.5 py-0.5 rounded font-medium">
-                                CV
-                              </span>
+                          {interview.custom_metrics.map((metric) => (
+                            <label key={metric.id} className="flex items-center gap-2 py-1.5 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={visibleMetrics.includes(metric.id)}
+                                onChange={() => toggleMetricVisibility(metric.id)}
+                                className="rounded border-gray-300"
+                              />
+                              <span className="text-sm text-gray-700 truncate">{metric.title}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 w-40"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Table - Scrollable */}
+                <div className="flex-1 overflow-auto min-h-0">
+                  <table className="w-full">
+                    <thead className="sticky top-0 bg-white z-10">
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 whitespace-nowrap">Candidate</th>
+                        <th
+                          className="text-left py-2 px-3 text-xs font-medium text-amber-600 cursor-pointer hover:bg-gray-50 whitespace-nowrap"
+                          onClick={() => handleSort("weightedScore")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Weighted
+                            {sortColumn === "weightedScore" && (
+                              sortDirection === "desc" ? <ChevronDown size={12} /> : <ChevronUp size={12} />
                             )}
-                            {response?.details?.attached_cv?.text && !response?.details?.source && (
-                              <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-200 px-1.5 py-0.5 rounded font-medium">
-                                +CV
-                              </span>
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-2 px-3 text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-50 whitespace-nowrap"
+                          onClick={() => handleSort("overallScore")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Overall
+                            {sortColumn === "overallScore" && (
+                              sortDirection === "desc" ? <ChevronDown size={12} /> : <ChevronUp size={12} />
                             )}
-                            {/* Score and notification */}
-                            <div className="flex flex-col items-center justify-center">
-                            {!response.is_viewed && (
-                              <div className="w-4 h-4 flex items-center justify-center mb-1">
-                                <div className="text-indigo-500 text-xl leading-none">
-                                  ●
-                                </div>
-                              </div>
-                            )}
-                            <div
-                              className={`w-6 h-6 flex items-center justify-center ${
-                                response.is_viewed ? "h-full" : ""
+                          </div>
+                        </th>
+                        {/* Custom Metric Columns - hidden by default, animate in */}
+                        {interview?.custom_metrics?.filter((m) => visibleMetrics.includes(m.id)).map((metric) => (
+                          <th
+                            key={metric.id}
+                            className="text-left py-2 px-3 text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-50 whitespace-nowrap animate-fadeIn"
+                            onClick={() => handleSort(`metric_${metric.id}`)}
+                          >
+                            <div className="flex items-center gap-1">
+                              <span className="truncate max-w-[60px]">{metric.title}</span>
+                              {sortColumn === `metric_${metric.id}` && (
+                                sortDirection === "desc" ? <ChevronDown size={12} /> : <ChevronUp size={12} />
+                              )}
+                            </div>
+                          </th>
+                        ))}
+                        <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-full">Summary</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filterMainResponses.length > 0 ? (
+                        filterMainResponses.map((response, idx) => {
+                          // Get the summary/analysis text from various possible fields
+                          const summaryText = response?.analytics?.overallFeedback || 
+                                             response?.analytics?.summary || 
+                                             response?.details?.call_analysis?.call_summary ||
+                                             "";
+                          const hasCV = response?.cv_url || response?.details?.attached_cv;
+                          return (
+                            <tr
+                              key={response.id}
+                              className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                                idx % 2 === 1 ? "bg-[#F8FAFC]" : "bg-white"
                               }`}
                             >
-                              {response.analytics &&
-                                response.analytics.overallScore !==
-                                  undefined && (
-                                  <TooltipProvider>
+                              <td className="py-2 px-3 whitespace-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className={`w-1 h-6 rounded-full flex-shrink-0 ${
+                                      response.candidate_status === "SELECTED"
+                                        ? "bg-green-500"
+                                        : response.candidate_status === "POTENTIAL"
+                                        ? "bg-amber-500"
+                                        : response.candidate_status === "NOT_SELECTED"
+                                        ? "bg-red-500"
+                                        : "bg-gray-300"
+                                    }`}
+                                  />
+                                  <span
+                                    className="text-sm font-medium text-gray-900 cursor-pointer hover:underline"
+                                    onClick={() => {
+                                      navigateWithTransition(`/interviews/${params.interviewId}?call=${response.call_id}`);
+                                      handleResponseClick(response);
+                                    }}
+                                  >
+                                    {response?.name || "Anonymous"}
+                                  </span>
+                                  {hasCV && (
+                                    <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">+CV</span>
+                                  )}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.open(`/interviews/${params.interviewId}?call=${response.call_id}`, "_blank");
+                                    }}
+                                    className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                                    title="Open in new tab"
+                                  >
+                                    <ExternalLink size={12} />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-sm text-gray-900 font-medium whitespace-nowrap">
+                                {response?.analytics?.weightedOverallScore ?? response?.analytics?.overallScore ?? "-"}
+                              </td>
+                              <td className="py-2 px-3 text-sm text-gray-900 whitespace-nowrap">
+                                {response?.analytics?.overallScore ?? "-"}
+                              </td>
+                              {/* Custom Metric Values - animate in with columns */}
+                              {interview?.custom_metrics?.filter((m) => visibleMetrics.includes(m.id)).map((metric) => {
+                                const metricScore = response?.analytics?.customMetrics?.find(
+                                  (m: any) => m.metricId === metric.id
+                                );
+                                return (
+                                  <td key={metric.id} className="py-2 px-3 text-xs text-gray-700 whitespace-nowrap animate-fadeIn">
+                                    {metricScore?.score ?? "-"}
+                                  </td>
+                                );
+                              })}
+                              <td className="py-2 px-3">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-xs text-gray-500 line-clamp-1">
+                                    {summaryText || "No summary available"}
+                                  </span>
+                                  {summaryText && (
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <div className="w-6 h-6 rounded-full bg-white border-2 border-indigo-500 flex items-center justify-center">
-                                          <span className="text-indigo-500 text-xs font-semibold">
-                                            {response?.analytics?.overallScore}
-                                          </span>
-                                        </div>
+                                        <button className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                          <Info size={11} />
+                                        </button>
                                       </TooltipTrigger>
-                                      <TooltipContent
-                                        className="bg-gray-500"
-                                        side="bottom"
-                                        sideOffset={4}
-                                      >
-                                        <span className="text-white font-normal flex flex-row gap-4">
-                                          Overall Score
-                                        </span>
+                                      <TooltipContent side="left" className="max-w-sm p-3">
+                                        <p className="text-xs whitespace-pre-wrap">{summaryText}</p>
                                       </TooltipContent>
                                     </Tooltip>
-                                  </TooltipProvider>
-                                )}
-                            </div>
-                            </div>
-                          </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={4 + (interview?.custom_metrics?.filter((m) => visibleMetrics.includes(m.id)).length || 0)} className="py-8 text-center text-gray-500">
+                            No responses found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Charts Row */}
+                <div className="flex gap-6 py-4 flex-shrink-0 border-t border-gray-100 mt-2">
+
+                  {/* Sentiment Chart */}
+                  <div className="flex-1 rounded-2xl border border-gray-200 p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-gray-900">Candidate Sentiment</h3>
+                      <Smile size={18} className="text-gray-400" />
+                    </div>
+                    <div className="flex items-center gap-8">
+                      <div className="relative w-24 h-24">
+                        <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                          <circle cx="18" cy="18" r="14" fill="none" stroke="#F3F4F6" strokeWidth="4" />
+                          <circle
+                            cx="18" cy="18" r="14" fill="none"
+                            stroke="#F59E0B"
+                            strokeWidth="4"
+                            strokeDasharray={`${(sentimentCounts.positive / Math.max(totalResponses, 1)) * 88} 88`}
+                            strokeLinecap="round"
+                          />
+                          <circle
+                            cx="18" cy="18" r="14" fill="none"
+                            stroke="#22C55E"
+                            strokeWidth="4"
+                            strokeDasharray={`${(sentimentCounts.neutral / Math.max(totalResponses, 1)) * 88} 88`}
+                            strokeDashoffset={`-${(sentimentCounts.positive / Math.max(totalResponses, 1)) * 88}`}
+                            strokeLinecap="round"
+                          />
+                          <circle
+                            cx="18" cy="18" r="14" fill="none"
+                            stroke="#EF4444"
+                            strokeWidth="4"
+                            strokeDasharray={`${(sentimentCounts.negative / Math.max(totalResponses, 1)) * 88} 88`}
+                            strokeDashoffset={`-${((sentimentCounts.positive + sentimentCounts.neutral) / Math.max(totalResponses, 1)) * 88}`}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <div className="w-2 h-2 rounded-full bg-amber-500" />
+                          <span className="text-sm text-gray-700">Positive</span>
+                          <span className="ml-auto text-sm font-semibold text-gray-900">{sentimentCounts.positive}</span>
+                        </div>
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <span className="text-sm text-gray-700">Neutral</span>
+                          <span className="ml-auto text-sm font-semibold text-gray-900">{sentimentCounts.neutral}</span>
+                        </div>
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <div className="w-2 h-2 rounded-full bg-red-500" />
+                          <span className="text-sm text-gray-700">Negative</span>
+                          <span className="ml-auto text-sm font-semibold text-gray-900">{sentimentCounts.negative}</span>
                         </div>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-center text-gray-500">
-                    No responses to display
-                  </p>
-                )}
-              </ScrollArea>
-            </div>
-            {responses && (
-              <div className="w-[85%] rounded-md ">
-                {searchParams.call ? (
-                  <CallInfo
-                    call_id={searchParams.call}
-                    onDeleteResponse={handleDeleteResponse}
-                    onCandidateStatusChange={handleCandidateStatusChange}
-                  />
-                ) : searchParams.edit ? (
-                  <EditInterview interview={interview} />
-                ) : (
-                  <SummaryInfo responses={responses} interview={interview} />
-                )}
+                  </div>
+
+                  {/* Status Chart */}
+                  <div className="flex-1 rounded-2xl border border-gray-200 p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-gray-900">Candidate Status</h3>
+                      <UserCircle size={18} className="text-gray-400" />
+                    </div>
+                    <div className="flex items-center gap-8">
+                      <div className="relative w-24 h-24">
+                        <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                          <circle cx="18" cy="18" r="14" fill="none" stroke="#E5E7EB" strokeWidth="4" />
+                          <circle
+                            cx="18" cy="18" r="14" fill="none"
+                            stroke="#22C55E"
+                            strokeWidth="4"
+                            strokeDasharray={`${(statusCounts.selected / Math.max(totalResponses, 1)) * 88} 88`}
+                            strokeLinecap="round"
+                          />
+                          <circle
+                            cx="18" cy="18" r="14" fill="none"
+                            stroke="#F59E0B"
+                            strokeWidth="4"
+                            strokeDasharray={`${(statusCounts.potential / Math.max(totalResponses, 1)) * 88} 88`}
+                            strokeDashoffset={`-${(statusCounts.selected / Math.max(totalResponses, 1)) * 88}`}
+                            strokeLinecap="round"
+                          />
+                          <circle
+                            cx="18" cy="18" r="14" fill="none"
+                            stroke="#EF4444"
+                            strokeWidth="4"
+                            strokeDasharray={`${(statusCounts.notSelected / Math.max(totalResponses, 1)) * 88} 88`}
+                            strokeDashoffset={`-${((statusCounts.selected + statusCounts.potential) / Math.max(totalResponses, 1)) * 88}`}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <span className="text-sm text-gray-700">Selected</span>
+                          <span className="ml-auto text-sm font-semibold text-gray-900">{statusCounts.selected}</span>
+                        </div>
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <div className="w-2 h-2 rounded-full bg-amber-500" />
+                          <span className="text-sm text-gray-700">Potential</span>
+                          <span className="ml-auto text-sm font-semibold text-gray-900">{statusCounts.potential}</span>
+                        </div>
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <div className="w-2 h-2 rounded-full bg-red-500" />
+                          <span className="text-sm text-gray-700">Not Selected</span>
+                          <span className="ml-auto text-sm font-semibold text-gray-900">{statusCounts.notSelected}</span>
+                        </div>
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <div className="w-2 h-2 rounded-full bg-gray-400" />
+                          <span className="text-sm text-gray-700">No Status</span>
+                          <span className="ml-auto text-sm font-semibold text-gray-900">{statusCounts.noStatus}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
+          )}
+        </div>
+
+      {/* Right Sidebar */}
+      <div className="w-[260px] border-l border-gray-200 flex flex-col bg-white flex-shrink-0 overflow-hidden">
+        {/* Filter */}
+        <div className="p-3 border-b border-gray-100 flex-shrink-0">
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-full rounded-lg border-gray-200 h-9">
+              <Filter size={14} className="text-gray-400 mr-2" />
+              <SelectValue placeholder="Filter By" />
+              <ChevronDown size={14} className="ml-auto text-gray-400" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All</SelectItem>
+              <SelectItem value={CandidateStatus.SELECTED}>Selected</SelectItem>
+              <SelectItem value={CandidateStatus.POTENTIAL}>Potential</SelectItem>
+              <SelectItem value={CandidateStatus.NOT_SELECTED}>Not Selected</SelectItem>
+              <SelectItem value={CandidateStatus.NO_STATUS}>No Status</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Sidebar Tabs */}
+        <div className="flex p-2 gap-2 flex-shrink-0">
+          <button
+            onClick={() => setSidebarTab("interviews")}
+            className={`flex-1 py-2 text-sm font-medium rounded-full transition-colors ${
+              sidebarTab === "interviews"
+                ? "bg-gray-100 text-gray-900"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            Interviews
+          </button>
+          <button
+            onClick={() => setSidebarTab("cvs")}
+            className={`flex-1 py-2 text-sm font-medium rounded-full transition-colors ${
+              sidebarTab === "cvs"
+                ? "bg-gray-100 text-gray-900"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            CVs
+          </button>
+        </div>
+
+        {/* Response List */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="p-2 space-y-1.5">
+            {filterSidebarResponses().length > 0 ? (
+              filterSidebarResponses().map((response) => {
+                const hasCV = response?.cv_url || response?.details?.attached_cv;
+                const score = response?.analytics?.overallScore;
+                // Score border color: green >= 80, yellow 50-79, grey < 50
+                const scoreBorderColor = score >= 80 ? "border-green-500" : score >= 50 ? "border-amber-500" : "border-gray-400";
+                const scoreTextColor = score >= 80 ? "text-green-600" : score >= 50 ? "text-amber-600" : "text-gray-500";
+                return (
+                  <div
+                    key={response.id}
+                    onClick={() => {
+                      navigateWithTransition(`/interviews/${params.interviewId}?call=${response.call_id}`);
+                      handleResponseClick(response);
+                    }}
+                    className="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-100 cursor-pointer transition-all hover:shadow-sm hover:border-gray-200"
+                  >
+                    {/* Status indicator bar - reflects candidate status */}
+                    <div
+                      className={`w-1 h-9 rounded-full flex-shrink-0 ${
+                        response.candidate_status === "SELECTED"
+                          ? "bg-green-500"
+                          : response.candidate_status === "POTENTIAL"
+                          ? "bg-amber-500"
+                          : response.candidate_status === "NOT_SELECTED"
+                          ? "bg-red-500"
+                          : "bg-gray-400"
+                      }`}
+                    />
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900 truncate">
+                        {response?.name ? `${response.name}'s Response` : "Response"}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5 text-[9px] text-gray-500">
+                        <span className="flex items-center gap-0.5">
+                          <Calendar size={8} />
+                          {new Date(response?.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
+                        </span>
+                        <span className="flex items-center gap-0.5">
+                          <Clock size={8} />
+                          {new Date(response?.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase()}
+                        </span>
+                      </div>
+                    </div>
+                    {/* +CV tag and Score badge - aligned right */}
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {hasCV && (
+                        <span className="text-[8px] font-medium text-blue-600 bg-blue-50 px-1 py-0.5 rounded">+CV</span>
+                      )}
+                      <div className={`w-7 h-7 rounded-full border-2 ${scoreBorderColor} bg-white flex items-center justify-center`}>
+                        <span className={`text-[9px] font-bold ${scoreTextColor}`}>
+                          {score ?? "-"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-center text-sm text-gray-500 py-6">No responses</p>
             )}
           </div>
         </div>
-      )}
-      <Modal
-        open={showColorPicker}
-        closeOnOutsideClick={false}
-        onClose={applyColorChange}
-      >
+
+        {/* Sidebar Footer - Edit Interview button only */}
+        <div className="p-2 border-t border-gray-100 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-xs text-gray-500 hover:text-gray-700"
+            onClick={() => navigateWithTransition(`/interviews/${params.interviewId}?edit=true`)}
+          >
+            <Pencil size={12} />
+            Edit Interview
+          </Button>
+        </div>
+      </div>
+
+      {/* Modals */}
+      <Modal open={showColorPicker} closeOnOutsideClick={false} onClose={applyColorChange}>
         <div className="w-[250px] p-3">
-          <h3 className="text-lg font-semibold mb-4 text-center">
-            Choose a Theme Color
-          </h3>
+          <h3 className="text-lg font-semibold mb-4 text-center">Choose a Theme Color</h3>
           <ChromePicker
             disableAlpha={true}
             color={themeColor}
-            styles={{
-              default: {
-                picker: { width: "100%" },
-              },
-            }}
+            styles={{ default: { picker: { width: "100%" } } }}
             onChange={handleColorChange}
           />
         </div>
       </Modal>
+
       {isSharePopupOpen && (
         <SharePopup
           open={isSharePopupOpen}
@@ -803,14 +955,11 @@ function InterviewHome({ params, searchParams }: Props) {
               ? `${base_url}/call/${interview?.readable_slug}`
               : (interview?.url as string)
           }
-          onClose={closeSharePopup}
+          onClose={() => setIsSharePopupOpen(false)}
         />
       )}
-      <Modal
-        open={isCVUploaderOpen}
-        closeOnOutsideClick={true}
-        onClose={() => setIsCVUploaderOpen(false)}
-      >
+
+      <Modal open={isCVUploaderOpen} closeOnOutsideClick={true} onClose={() => setIsCVUploaderOpen(false)}>
         <div className="w-[500px] p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -820,17 +969,11 @@ function InterviewHome({ params, searchParams }: Props) {
               </p>
             </div>
           </div>
-          <CVUploader
-            interviewId={params.interviewId}
-            onUploadComplete={() => {
-              // Only refresh responses, don't close the popup
-              // User can close manually or continue uploading
-              refreshResponses();
-            }}
-          />
+          <CVUploader interviewId={params.interviewId} onUploadComplete={refreshResponses} />
         </div>
       </Modal>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
 

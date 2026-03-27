@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { InterviewBase, Question } from "@/types/interview";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import QuestionCard from "@/components/dashboard/interview/create-popup/questionCard";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ChevronLeft } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   interviewData: InterviewBase;
@@ -75,41 +75,46 @@ function QuestionsPopup({ interviewData, setInterviewData, logoFile, onBack, onN
 
   const isValid = 
     questions.length >= interviewData.question_count &&
-    description.trim() !== "" &&
     questions.every((q) => q.question.trim() !== "");
 
   return (
-    <div className="w-full max-w-[38rem] min-w-[320px] min-h-[30rem] flex flex-col animate-slideInRight">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+    <div className="w-full animate-fadeIn">
+      <div className="rounded-2xl bg-white p-6 shadow-sm">
         <button
           onClick={onBack}
-          className="flex items-center text-gray-600 hover:text-gray-900"
+          className="mb-4 inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
         >
-          <ChevronLeft className="h-5 w-5" />
-          <span className="text-sm">Back</span>
+          <ChevronLeft className="h-4 w-4" />
+          Back
         </button>
-        <h1 className="text-xl font-semibold">Review Questions</h1>
-        <div className="w-16" />
-      </div>
 
-      {/* Step indicator */}
-      <div className="flex items-center justify-center gap-2 py-2">
-        <div className="w-8 h-1 bg-indigo-600 rounded" />
-        <div className="w-8 h-1 bg-indigo-600 rounded" />
-        <div className="w-8 h-1 bg-gray-300 rounded" />
-      </div>
-
-      {/* Description */}
-      <div className="px-6 py-2">
-        <p className="text-sm text-gray-600 text-center">
-          Review and edit the interview questions. These will be used during the interviews.
-        </p>
-      </div>
-
-      {/* Questions List */}
-      <ScrollArea className="flex-1 px-6">
         <div className="space-y-2">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">
+              Interview Description
+            </p>
+            <p className="text-xs italic text-gray-500">
+              Note: interviewees will see this description.
+            </p>
+          </div>
+          <Textarea
+            value={description}
+            className="min-h-[104px] resize-none"
+            placeholder="Enter your interview description"
+            onChange={(e) => setDescription(e.target.value)}
+            onBlur={(e) => setDescription(e.target.value.trim())}
+          />
+        </div>
+
+        <p className="mt-8 text-sm font-semibold text-gray-900">
+          Create Questions
+        </p>
+        <p className="mt-1 text-sm italic text-gray-600">
+          These questions will be used during candidate interviews. Kindly
+          review them to ensure they are appropriate.
+        </p>
+
+        <div className="mt-4 space-y-3">
           {questions.map((question, index) => (
             <QuestionCard
               key={question.id}
@@ -121,48 +126,32 @@ function QuestionsPopup({ interviewData, setInterviewData, logoFile, onBack, onN
           ))}
           <div ref={endOfListRef} />
         </div>
-        
+
         {questions.length < interviewData.question_count && (
-          <div
-            className="flex items-center justify-center py-3 cursor-pointer opacity-75 hover:opacity-100"
+          <button
+            type="button"
             onClick={handleAddQuestion}
+            className="mt-6 flex w-full flex-col items-center justify-center gap-2 rounded-2xl py-6 text-gray-500 hover:text-gray-700"
           >
-            <Plus
-              size={40}
-              strokeWidth={2.2}
-              className="text-indigo-600"
-            />
-          </div>
+            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white">
+              <Plus className="h-5 w-5" />
+            </span>
+            <span className="text-xs">Add more questions</span>
+          </button>
         )}
 
-        {/* Description field */}
-        <div className="mt-4 mb-4">
-          <p className="font-medium text-sm mb-1">
-            Interview Description
-            <span className="text-xs text-gray-500 font-normal ml-2">
-              (Interviewees will see this)
-            </span>
-          </p>
-          <textarea
-            value={description}
-            className="w-full h-20 py-2 px-3 border-2 rounded-md border-gray-300 text-sm"
-            placeholder="Enter your interview description..."
-            onChange={(e) => setDescription(e.target.value)}
-            onBlur={(e) => setDescription(e.target.value.trim())}
-          />
+        <div className="mt-8 flex items-center justify-end gap-3">
+          <Button variant="secondary" disabled>
+            Save as Draft
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={!isValid}
+            className="bg-black text-white hover:bg-black/90"
+          >
+            Next Step
+          </Button>
         </div>
-      </ScrollArea>
-
-      {/* Footer */}
-      <div className="flex items-center justify-end px-6 py-4 border-t">
-        <Button
-          onClick={handleNext}
-          disabled={!isValid}
-          className="bg-indigo-600 hover:bg-indigo-800"
-        >
-          Continue to Evaluation Metrics
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
       </div>
     </div>
   );

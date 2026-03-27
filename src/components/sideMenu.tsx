@@ -1,66 +1,113 @@
 "use client";
 
 import React from "react";
-import { PlayCircleIcon, SpeechIcon, ShieldIcon } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { usePageTransition } from "@/components/PageTransition";
 
 function SideMenu() {
   const pathname = usePathname();
-  const router = useRouter();
+  const { navigateWithTransition } = usePageTransition();
+
+  const isInterviewsActive = pathname.endsWith("/dashboard") || pathname.includes("/interviews");
+  const isInterviewersActive = pathname.endsWith("/interviewers");
+  const isAdminActive = pathname.endsWith("/admin");
 
   return (
-    <div className="z-[10] bg-slate-100 p-6 w-[200px] fixed top-[64px] left-0 h-full">
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-col justify-between gap-2">
-          <div
-            className={`flex flex-row p-3 rounded-md hover:bg-slate-200 cursor-pointer ${
-              pathname.endsWith("/dashboard") ||
-              pathname.includes("/interviews")
-                ? "bg-orange-200"
-                : "bg-slate-100"
+    <aside className="fixed left-0 top-0 bottom-0 z-[20] w-[212px] border-r-[0.5px] border-black/10 bg-white">
+      <div className="flex h-full flex-col items-center gap-2 p-4">
+        {/* Brand */}
+        <div className="w-full">
+          <button 
+            onClick={() => navigateWithTransition("/dashboard")} 
+            className="flex items-center justify-center px-2 py-3 w-full"
+          >
+            <p className="text-lg tracking-wide">
+              <span className="font-extrabold italic text-orange-500">RAPID</span><span className="font-light text-gray-500">SCREEN</span>
+            </p>
+          </button>
+        </div>
+
+        {/* Dashboard Section */}
+        <div className="flex w-[180px] flex-col items-start gap-1 pb-3 self-stretch">
+          <p className="text-xs font-medium text-gray-400 px-2 pt-2">Dashboard</p>
+
+          {/* Interviews */}
+          <button
+            type="button"
+            className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium transition-colors ${
+              isInterviewsActive
+                ? "bg-gray-100 text-gray-900"
+                : "text-gray-700 hover:bg-gray-50"
             }`}
             onClick={() => {
               if (!pathname.endsWith("/dashboard")) {
-                router.push("/dashboard");
+                navigateWithTransition("/dashboard");
               }
             }}
           >
-            <PlayCircleIcon className="font-thin	 mr-2" />
-            <p className="font-medium ">Interviews</p>
-          </div>
-          <div
-            className={`flex flex-row p-3 rounded-md hover:bg-slate-200 cursor-pointer ${
-              pathname.endsWith("/interviewers")
-                ? "bg-orange-200"
-                : "bg-slate-100"
+            <Image
+              src="/icons/dashboard/interviews.png"
+              alt="Interviews"
+              width={20}
+              height={20}
+              className="flex-shrink-0"
+            />
+            <span>Interviews</span>
+          </button>
+
+          {/* Interviewers */}
+          <button
+            type="button"
+            className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium transition-colors ${
+              isInterviewersActive
+                ? "bg-gray-100 text-gray-900"
+                : "text-gray-700 hover:bg-gray-50"
             }`}
             onClick={() => {
               if (!pathname.endsWith("/interviewers")) {
-                router.push("/dashboard/interviewers");
+                navigateWithTransition("/dashboard/interviewers");
               }
             }}
           >
-            <SpeechIcon className="font-thin mr-2" />
-            <p className="font-medium ">Interviewers</p>
-          </div>
-          <div
-            className={`flex flex-row p-3 rounded-md hover:bg-slate-200 cursor-pointer ${
-              pathname.endsWith("/admin")
-                ? "bg-orange-200"
-                : "bg-slate-100"
+            <Image
+              src="/icons/dashboard/interviewers.png"
+              alt="Interviewers"
+              width={20}
+              height={20}
+              className="flex-shrink-0"
+            />
+            <span>Interviewers</span>
+          </button>
+
+          {/* Admin */}
+          <button
+            type="button"
+            className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium transition-colors ${
+              isAdminActive
+                ? "bg-gray-100 text-gray-900"
+                : "text-gray-700 hover:bg-gray-50"
             }`}
             onClick={() => {
               if (!pathname.endsWith("/admin")) {
-                router.push("/dashboard/admin");
+                navigateWithTransition("/dashboard/admin");
               }
             }}
           >
-            <ShieldIcon className="font-thin mr-2" />
-            <p className="font-medium ">Admin</p>
-          </div>
+            <Image
+              src="/icons/dashboard/admin.png"
+              alt="Admin"
+              width={20}
+              height={20}
+              className="flex-shrink-0"
+            />
+            <span>Admin</span>
+          </button>
         </div>
+
+        <div className="flex-1" />
       </div>
-    </div>
+    </aside>
   );
 }
 

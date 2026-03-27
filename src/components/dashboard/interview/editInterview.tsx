@@ -3,19 +3,15 @@
 import { Interview, Question, CustomMetric } from "@/types/interview";
 import React, { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Plus, SaveIcon, TrashIcon, RefreshCw, Scale, Info, FileText, Settings, HelpCircle } from "lucide-react";
+import { Plus, Save, Trash2, RefreshCw, Scale, Info, Settings, HelpCircle, Check } from "lucide-react";
 import { useInterviewers } from "@/contexts/interviewers.context";
 import QuestionCard from "@/components/dashboard/interview/create-popup/questionCard";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useInterviews } from "@/contexts/interviews.context";
 import { InterviewService } from "@/services/interviews.service";
-import { CardTitle } from "../../ui/card";
 import Image from "next/image";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +23,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
 import { useOrganization } from "@clerk/nextjs";
 import CustomMetricsEditor from "./customMetricsEditor";
@@ -37,6 +32,7 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import { usePageTransition } from "@/components/PageTransition";
 
 type EditInterviewProps = {
   interview: Interview | undefined;
@@ -76,6 +72,8 @@ function EditInterview({ interview }: EditInterviewProps) {
 
   const [isClicked, setIsClicked] = useState(false);
   const [isReEvaluating, setIsReEvaluating] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
+  const [isNavigating, setIsNavigating] = useState(false);
   
   // Calculate total weight for validation
   const totalWeight = customMetrics.reduce((sum, m) => sum + m.weight, 0);
@@ -84,7 +82,7 @@ function EditInterview({ interview }: EditInterviewProps) {
 
   const endOfListRef = useRef<HTMLDivElement>(null);
   const prevQuestionLengthRef = useRef(questions.length);
-  const router = useRouter();
+  const { navigateWithTransition } = usePageTransition();
 
   const handleInputChange = (id: string, newQuestion: Question) => {
     setQuestions(
@@ -196,7 +194,7 @@ function EditInterview({ interview }: EditInterviewProps) {
         position: "bottom-right",
         duration: 3000,
       });
-      router.push(`/interviews/${interview?.id}`);
+      navigateWithTransition(`/interviews/${interview?.id}`);
     } catch (error) {
       console.error("Error creating interview:", error);
       toast.error("Failed to update interview. Please try again.", {
@@ -214,7 +212,7 @@ function EditInterview({ interview }: EditInterviewProps) {
 
     try {
       await InterviewService.deleteInterview(interview.id);
-      router.push("/dashboard");
+      navigateWithTransition("/dashboard");
     } catch (error) {
       console.error("Error deleting interview:", error);
       toast.error("Failed to delete the interview.", {
@@ -232,108 +230,135 @@ function EditInterview({ interview }: EditInterviewProps) {
   }, [questions.length]);
 
   return (
-    <div className="h-screen z-[10] mx-2 overflow-hidden">
-      <div className="flex flex-col bg-gray-200 rounded-md h-full p-2 pl-4">
+    <TooltipProvider>
+      <div className={`h-full w-full bg-white overflow-hidden transition-opacity duration-300 ${isNavigating ? "opacity-0" : "opacity-100 animate-fadeIn"}`}>
         {/* Header */}
-        <div className="flex flex-row justify-between items-center border-b border-gray-300 pb-3">
-          <div
-            className="mt-2 ml-1 pr-2 inline-flex items-center text-orange-600 hover:cursor-pointer"
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 relative z-10">
+          <button
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            disabled={isNavigating}
             onClick={() => {
-              router.push(`/interviews/${interview?.id}`);
+              setIsNavigating(true);
+              navigateWithTransition(`/interviews/${interview?.id}`);
             }}
           >
-            <ArrowLeft className="mr-2" />
-            <p className="text-sm font-semibold">Back to Summary</p>
-          </div>
+            {isNavigating ? "Redirecting..." : "Discard Changes"}
+          </button>
           
-          <div className="flex flex-row gap-3 items-center">
+          <div className="flex items-center gap-2">
             {/* Validation warning */}
             {customMetrics.length > 0 && (!weightsValid || !metricsHaveContent) && (
-              <span className="text-xs text-red-600 bg-red-100 px-3 py-1 rounded-full">
+              <span className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-lg">
                 {!weightsValid ? `Weights must sum to 10 (current: ${totalWeight})` : "Fill all metric fields"}
               </span>
             )}
             
-            {/* Re-evaluate button - always visible when custom metrics exist */}
+            {/* Re-evaluate button - purple gradient */}
             {customMetrics.length > 0 && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      disabled={isClicked || isReEvaluating || !weightsValid || !metricsHaveContent}
-                      className="bg-indigo-600 hover:bg-indigo-800"
-                      onClick={() => {
-                        setIsClicked(true);
-                        onSave(true);
-                      }}
-                    >
-                      {isReEvaluating ? (
-                        <>
-                          <RefreshCw size={16} className="mr-2 animate-spin" />
-                          Re-evaluating...
-                        </>
-                      ) : (
-                        <>
-                          Save & Re-evaluate <RefreshCw size={16} className="ml-2" />
-                        </>
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-gray-700 text-white max-w-xs">
-                    <p>Save changes and re-evaluate all existing responses with the custom metrics.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span>
-                    <Button
-                      disabled={isClicked || isReEvaluating || (customMetrics.length > 0 && (!weightsValid || !metricsHaveContent))}
-                      className="bg-orange-600 hover:bg-orange-800"
-                      onClick={() => {
-                        setIsClicked(true);
-                        onSave(false);
-                      }}
-                    >
-                      Save <SaveIcon size={16} className="ml-2" />
-                    </Button>
-                  </span>
+                  <Button
+                    size="sm"
+                    disabled={isClicked || isReEvaluating || !weightsValid || !metricsHaveContent || isNavigating}
+                    className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white text-xs gap-2 border-0"
+                    onClick={async () => {
+                      setIsClicked(true);
+                      await onSave(true);
+                      setIsNavigating(true);
+                      navigateWithTransition(`/interviews/${interview?.id}`);
+                    }}
+                  >
+                    {isReEvaluating ? (
+                      <>
+                        <RefreshCw size={14} className="animate-spin" />
+                        Re-evaluating...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw size={14} />
+                        Save & Re-evaluate
+                      </>
+                    )}
+                  </Button>
                 </TooltipTrigger>
-                {customMetrics.length > 0 && (!weightsValid || !metricsHaveContent) && (
-                  <TooltipContent className="bg-red-600 text-white max-w-xs">
-                    <p>{!weightsValid ? `Metric weights must sum to 10 (current: ${totalWeight})` : "Fill all metric titles and descriptions"}</p>
-                  </TooltipContent>
-                )}
+                <TooltipContent side="bottom" className="max-w-xs z-50">
+                  <p className="text-xs">Save changes and re-evaluate all existing responses with the custom metrics.</p>
+                </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-            <AlertDialog>
-              <AlertDialogTrigger>
+            )}
+            
+            {/* Save button - outline style */}
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
-                  disabled={isClicked}
-                  className="bg-red-500 hover:bg-red-600 p-2"
+                  size="sm"
+                  variant="outline"
+                  disabled={isClicked || isReEvaluating || isNavigating || (customMetrics.length > 0 && (!weightsValid || !metricsHaveContent))}
+                  className="text-gray-700 border-gray-300 hover:bg-gray-50 text-xs gap-2"
+                  onClick={async () => {
+                    setIsClicked(true);
+                    await onSave(false);
+                    setIsNavigating(true);
+                    navigateWithTransition(`/interviews/${interview?.id}`);
+                  }}
                 >
-                  <TrashIcon size={16} />
+                  <Save size={14} />
+                  Save
+                </Button>
+              </TooltipTrigger>
+              {customMetrics.length > 0 && (!weightsValid || !metricsHaveContent) && (
+                <TooltipContent side="bottom" className="bg-red-600 text-white max-w-xs z-50">
+                  <p className="text-xs">{!weightsValid ? `Weights must sum to 10 (current: ${totalWeight})` : "Fill all fields"}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+            
+            {/* Delete button */}
+            <AlertDialog onOpenChange={(open) => { if (!open) { setDeleteConfirmName(""); } }}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={isClicked || isNavigating}
+                  className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                >
+                  <Trash2 size={14} />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="rounded-2xl max-w-md">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    this interview.
+                  <AlertDialogTitle className="text-red-600">Delete Interview</AlertDialogTitle>
+                  <AlertDialogDescription className="space-y-3">
+                    <p>
+                      This action is <strong>irreversible</strong>. This will permanently delete this interview
+                      and all its responses.
+                    </p>
+                    <p className="text-sm">
+                      To confirm, please type <strong className="text-gray-900">{interview?.name}</strong> below:
+                    </p>
+                    <input
+                      type="text"
+                      value={deleteConfirmName}
+                      onChange={(e) => setDeleteConfirmName(e.target.value)}
+                      placeholder="Type interview name here..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400"
+                    />
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel className="rounded-lg">Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    className="bg-orange-600 hover:bg-orange-800"
-                    onClick={async () => {
+                    className="bg-red-500 hover:bg-red-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={deleteConfirmName !== interview?.name}
+                    onClick={async (e) => {
+                      if (deleteConfirmName !== interview?.name) {
+                        e.preventDefault();
+                        return;
+                      }
                       await onDeleteInterviewClick();
                     }}
                   >
-                    Continue
+                    Delete Interview
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -341,185 +366,180 @@ function EditInterview({ interview }: EditInterviewProps) {
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col mt-4 overflow-hidden">
-          <TabsList className="grid w-fit grid-cols-3 bg-slate-300">
-            <TabsTrigger value="details" className="flex items-center gap-2 data-[state=active]:bg-white">
-              <Settings size={16} />
-              Details
-            </TabsTrigger>
-            <TabsTrigger value="questions" className="flex items-center gap-2 data-[state=active]:bg-white">
-              <HelpCircle size={16} />
-              Questions
-            </TabsTrigger>
-            <TabsTrigger value="metrics" className="flex items-center gap-2 data-[state=active]:bg-white">
-              <Scale size={16} />
-              Custom Metrics
-              {metricsChanged && (
-                <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
+        {/* Tab Navigation */}
+        <div className="flex items-center gap-1 px-6 py-3 border-b border-gray-100">
+          {[
+            { id: "details", label: "Details", icon: Settings },
+            { id: "questions", label: "Questions", icon: HelpCircle },
+            { id: "metrics", label: "Custom Metrics", icon: Scale },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                activeTab === tab.id
+                  ? "bg-gray-100 text-gray-900"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <tab.icon size={14} />
+              {tab.label}
+              {tab.id === "metrics" && metricsChanged && (
+                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
               )}
-            </TabsTrigger>
-          </TabsList>
+            </button>
+          ))}
+        </div>
 
+        {/* Content Area */}
+        <div className="flex-1 overflow-auto p-6" style={{ height: "calc(100% - 130px)" }}>
           {/* Details Tab */}
-          <TabsContent value="details" className="flex-1 overflow-auto mt-4 pr-4 animate-fadeIn">
-            <div className="space-y-4">
-              <div>
-                <p className="mb-1 font-medium">
-                  Interview Description{" "}
-                  <span className="text-xs ml-2 font-normal text-gray-500">
-                    (Your respondents will see this.)
-                  </span>
-                </p>
+          {activeTab === "details" && (
+            <div className="max-w-3xl space-y-6 animate-fadeIn">
+              {/* Description */}
+              <div className="rounded-2xl border border-gray-200 p-5">
+                <label className="block text-xs font-medium text-gray-500 mb-2">
+                  Interview Description
+                  <span className="text-gray-400 font-normal ml-2">(visible to respondents)</span>
+                </label>
                 <textarea
                   value={description}
-                  className="h-fit py-2 border-2 rounded-md w-full px-2 border-gray-400 bg-white"
-                  placeholder="Enter your interview description here."
+                  className="w-full bg-transparent text-sm text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
+                  placeholder="Describe what this interview is about..."
                   rows={3}
                   onChange={(e) => setDescription(e.target.value)}
                   onBlur={(e) => setDescription(e.target.value.trim())}
                 />
               </div>
 
-              <div>
-                <p className="mb-1 font-medium">Objective</p>
+              {/* Objective */}
+              <div className="rounded-2xl border border-gray-200 p-5">
+                <label className="block text-xs font-medium text-gray-500 mb-2">Objective</label>
                 <textarea
                   value={objective}
-                  className="h-fit py-2 border-2 rounded-md w-full px-2 border-gray-400 bg-white"
-                  placeholder="Enter your interview objective here."
+                  className="w-full bg-transparent text-sm text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
+                  placeholder="What are you trying to evaluate?"
                   rows={3}
                   onChange={(e) => setObjective(e.target.value)}
                   onBlur={(e) => setObjective(e.target.value.trim())}
                 />
               </div>
 
-              <div className="flex flex-row gap-6">
-                <div className="flex-1">
-                  <p className="mb-1 font-medium">Interviewer</p>
-                  <div className="flex items-center">
+              {/* Interviewer Selection */}
+              <div className="rounded-2xl border border-gray-200 p-5 overflow-visible">
+                <label className="block text-xs font-medium text-gray-500 mb-3">Select Interviewer</label>
+                <div className="flex gap-4 overflow-x-auto pb-6 pt-1">
+                  {interviewers.map((item) => (
                     <div
-                      id="slider-3"
-                      className="h-32 pt-1 overflow-x-scroll scroll whitespace-nowrap scroll-smooth scrollbar-hide"
+                      key={item.id}
+                      className={`flex flex-col items-center gap-1 cursor-pointer transition-all flex-shrink-0 ${
+                        selectedInterviewer === item.id ? "" : "opacity-70 hover:opacity-100"
+                      }`}
+                      onClick={() => setSelectedInterviewer(item.id)}
                     >
-                      {interviewers.map((item) => (
-                        <div
-                          className="p-0 inline-block cursor-pointer hover:scale-105 ease-in-out duration-300 ml-1 mr-3 rounded-xl shrink-0 overflow-hidden"
-                          key={item.id}
-                        >
-                          <div
-                            className={`w-[80px] overflow-hidden rounded-full ${
-                              selectedInterviewer === item.id
-                                ? "border-4 border-indigo-600"
-                                : ""
-                            }`}
-                            onClick={() => setSelectedInterviewer(item.id)}
-                          >
-                            <Image
-                              src={item.image}
-                              alt="Picture of the interviewer"
-                              width={70}
-                              height={70}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <CardTitle className="mt-0 text-xs text-center">
-                            {item.name}
-                          </CardTitle>
-                        </div>
-                      ))}
+                      <div
+                        className={`w-14 h-14 rounded-full overflow-hidden transition-all ${
+                          selectedInterviewer === item.id
+                            ? "ring-2 ring-gray-900 ring-offset-2"
+                            : "border border-gray-200"
+                        }`}
+                      >
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          width={56}
+                          height={56}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="text-xs text-gray-600 text-center w-16 truncate">{item.name}</span>
+                      <div className="h-4 flex items-center justify-center">
+                        {selectedInterviewer === item.id && (
+                          <Check size={12} className="text-green-500" />
+                        )}
+                      </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Settings Row */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Questions & Duration */}
+                <div className="rounded-2xl border border-gray-200 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-xs font-medium text-gray-500">Number of Questions</label>
+                    <input
+                      type="number"
+                      step="1"
+                      max="5"
+                      min={questions.length.toString()}
+                      className="w-16 text-center text-sm font-medium bg-gray-50 rounded-lg border-0 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                      value={numQuestions}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        if (value === "" || (Number.isInteger(Number(value)) && Number(value) > 0)) {
+                          if (Number(value) > 5) { value = "5"; }
+                          setNumQuestions(Number(value));
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-gray-500">Duration (minutes)</label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="1"
+                      className="w-16 text-center text-sm font-medium bg-gray-50 rounded-lg border-0 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                      value={Number(duration)}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        if (value === "" || (Number.isInteger(Number(value)) && Number(value) > 0)) {
+                          setDuration(Number(value));
+                        }
+                      }}
+                    />
                   </div>
                 </div>
 
-                <div className="w-48">
-                  <p className="mb-1 font-medium">Interview Logo</p>
-                  <span className="text-xs text-gray-500 block mb-2">
-                    Using organization logo
-                  </span>
+                {/* Anonymous Toggle & Logo */}
+                <div className="rounded-2xl border border-gray-200 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-xs font-medium text-gray-500">Anonymous Responses</label>
+                    <Switch
+                      checked={isAnonymous}
+                      onCheckedChange={setIsAnonymous}
+                      className={isAnonymous ? "bg-gray-900" : ""}
+                    />
+                  </div>
                   {organization?.imageUrl && (
-                    <div className="h-16 w-16 rounded-xl border border-gray-200 flex items-center justify-center bg-white overflow-hidden">
-                      <Image
-                        src={organization.imageUrl}
-                        alt="Organization logo"
-                        width={64}
-                        height={64}
-                        className="object-contain h-full w-full"
-                      />
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg border border-gray-200 overflow-hidden bg-white">
+                        <Image
+                          src={organization.imageUrl}
+                          alt="Logo"
+                          width={40}
+                          height={40}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <span className="text-xs text-gray-500">Organization logo</span>
                     </div>
                   )}
                 </div>
               </div>
-
-              <label className="flex-col w-full">
-                <div className="flex items-center cursor-pointer">
-                  <span className="text-sm font-medium">
-                    Do you prefer the interviewees&apos; responses to be anonymous?
-                  </span>
-                  <Switch
-                    checked={isAnonymous}
-                    className={`ml-4 border-2 border-gray-300 ${
-                      isAnonymous ? "bg-orange-600" : "bg-white"
-                    }`}
-                    onCheckedChange={(checked) => setIsAnonymous(checked)}
-                  />
-                </div>
-                <span className="text-xs text-gray-500 italic">
-                  Note: If not anonymous, the interviewee&apos;s email and name will be collected.
-                </span>
-              </label>
-
-              <div className="flex flex-row gap-8">
-                <div className="flex flex-row items-center">
-                  <h3 className="font-medium">No. of Questions:</h3>
-                  <input
-                    type="number"
-                    step="1"
-                    max="5"
-                    min={questions.length.toString()}
-                    className="border-2 text-center focus:outline-none bg-white rounded-md border-gray-400 w-14 px-2 py-0.5 ml-3"
-                    value={numQuestions}
-                    onChange={(e) => {
-                      let value = e.target.value;
-                      if (
-                        value === "" ||
-                        (Number.isInteger(Number(value)) && Number(value) > 0)
-                      ) {
-                        if (Number(value) > 5) {
-                          value = "5";
-                        }
-                        setNumQuestions(Number(value));
-                      }
-                    }}
-                  />
-                </div>
-                <div className="flex flex-row items-center">
-                  <h3 className="font-medium">Expected Duration (mins):</h3>
-                  <input
-                    type="number"
-                    step="1"
-                    min="1"
-                    className="border-2 text-center focus:outline-none bg-white rounded-md border-gray-400 w-14 px-2 py-0.5 ml-3"
-                    value={Number(duration)}
-                    onChange={(e) => {
-                      let value = e.target.value;
-                      if (
-                        value === "" ||
-                        (Number.isInteger(Number(value)) && Number(value) > 0)
-                      ) {
-                        setDuration(Number(value));
-                      }
-                    }}
-                  />
-                </div>
-              </div>
             </div>
-          </TabsContent>
+          )}
 
           {/* Questions Tab */}
-          <TabsContent value="questions" className="flex-1 overflow-hidden mt-4 animate-fadeIn">
-            <div className="h-full flex flex-col">
-              <p className="mb-2 font-medium">Interview Questions</p>
-              <ScrollArea className="flex-1 p-3 bg-slate-100 rounded-md">
+          {activeTab === "questions" && (
+            <div className="max-w-3xl animate-fadeIn">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-gray-900">Interview Questions</h3>
+                <span className="text-xs text-gray-500">{questions.length} / {numQuestions} questions</span>
+              </div>
+              <div className="space-y-3">
                 {questions.map((question, index) => (
                   <QuestionCard
                     key={question.id}
@@ -531,71 +551,60 @@ function EditInterview({ interview }: EditInterviewProps) {
                 ))}
                 <div ref={endOfListRef} />
                 {questions.length < numQuestions && (
-                  <div
-                    className="border-indigo-600 opacity-75 hover:opacity-100 w-fit text-center rounded-full mx-auto cursor-pointer"
+                  <button
                     onClick={handleAddQuestion}
+                    className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors flex items-center justify-center gap-2"
                   >
-                    <Plus
-                      size={45}
-                      strokeWidth={2.2}
-                      className="text-orange-600 text-center"
-                    />
-                  </div>
+                    <Plus size={18} />
+                    <span className="text-sm">Add Question</span>
+                  </button>
                 )}
-              </ScrollArea>
+              </div>
             </div>
-          </TabsContent>
+          )}
 
           {/* Custom Metrics Tab */}
-          <TabsContent value="metrics" className="flex-1 overflow-hidden mt-4 animate-fadeIn">
-            <div className="h-full flex flex-col">
+          {activeTab === "metrics" && (
+            <div className="max-w-3xl animate-fadeIn">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Scale className="h-5 w-5 text-indigo-600" />
-                  <p className="font-medium">Custom Evaluation Metrics</p>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="h-4 w-4 text-gray-400" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs bg-gray-700 text-white p-3">
-                        <p className="text-sm">
-                          Define custom metrics to evaluate candidates. Each metric has a weight 
-                          (0-10) that determines its importance. Weights should sum to 10.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Scale size={16} className="text-gray-400" />
+                  <h3 className="text-sm font-medium text-gray-900">Custom Evaluation Metrics</h3>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info size={14} className="text-gray-400" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs">Define custom metrics to evaluate candidates. Weights should sum to 10.</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 {metricsChanged && (
-                  <span className="text-xs text-amber-600 font-medium bg-amber-100 px-3 py-1 rounded-full">
-                    Metrics changed - save to apply
+                  <span className="text-xs text-amber-600 font-medium bg-amber-50 px-3 py-1 rounded-lg">
+                    Unsaved changes
                   </span>
                 )}
               </div>
 
-              <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 overflow-hidden">
-                <ScrollArea className="h-full">
-                  <CustomMetricsEditor
-                    metrics={customMetrics}
-                    onChange={handleCustomMetricsChange}
-                  />
-                </ScrollArea>
+              <div className="rounded-2xl border border-gray-200 p-5">
+                <CustomMetricsEditor
+                  metrics={customMetrics}
+                  onChange={handleCustomMetricsChange}
+                />
               </div>
 
               {customMetrics.length > 0 && metricsChanged && (
-                <div className="mt-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                  <p className="text-sm text-indigo-700">
-                    <strong>Note:</strong> After saving, you can use &quot;Save & Re-evaluate&quot; to 
-                    apply these new metrics to all existing candidate responses.
+                <div className="mt-4 p-4 bg-gray-50 rounded-2xl">
+                  <p className="text-xs text-gray-600">
+                    <strong>Tip:</strong> Use &quot;Save & Re-evaluate&quot; to apply these metrics to all existing responses.
                   </p>
                 </div>
               )}
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
 

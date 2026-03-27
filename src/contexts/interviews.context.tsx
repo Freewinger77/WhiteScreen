@@ -73,11 +73,16 @@ export function InterviewProvider({ children }: InterviewProviderProps) {
     setInterviews(prev => prev.filter(interview => interview.id !== interviewId));
   }, []);
 
-  const getInterviewById = async (interviewId: string) => {
+  const getInterviewById = useCallback(async (interviewId: string) => {
+    // First check if we already have it in state
+    const cachedInterview = interviews.find(i => i.id === interviewId);
+    if (cachedInterview) {
+      return cachedInterview;
+    }
+    // Otherwise fetch from API
     const response = await InterviewService.getInterviewById(interviewId);
-
     return response;
-  };
+  }, [interviews]);
 
   useEffect(() => {
     const orgId = organization?.id || null;

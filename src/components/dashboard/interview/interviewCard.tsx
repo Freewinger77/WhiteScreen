@@ -1,14 +1,14 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Copy } from "lucide-react";
-import { CopyCheck } from "lucide-react";
+import { Copy, CopyCheck, Loader2 } from "lucide-react";
 import { ResponseService } from "@/services/responses.service";
 import axios from "axios";
-import MiniLoader from "@/components/loaders/mini-loader/miniLoader";
 import { InterviewerService } from "@/services/interviewers.service";
+import { usePageTransition } from "@/components/PageTransition";
 
 interface Props {
   name: string | null;
@@ -20,11 +20,36 @@ interface Props {
 
 const base_url = process.env.NEXT_PUBLIC_LIVE_URL;
 
+// Skeleton loader for interview card
+function InterviewCardSkeleton() {
+  return (
+    <div className="w-[250px] min-w-[200px] max-w-[272px] h-[250px] bg-[#F9F9FA] rounded-[20px] shrink-0 overflow-hidden animate-pulse">
+      <div className="h-full flex flex-col">
+        {/* Title Area Skeleton */}
+        <div className="relative flex-1 flex items-center justify-center bg-gray-200/50 m-3 mb-0 rounded-[16px]">
+          <div className="h-4 w-32 bg-gray-300 rounded" />
+          <div className="absolute right-3 top-3">
+            <div className="h-7 w-7 bg-gray-300 rounded-md" />
+          </div>
+        </div>
+        {/* Footer Skeleton */}
+        <div className="flex items-center justify-between px-4 py-4">
+          <div className="h-10 w-10 bg-gray-300 rounded-full" />
+          <div className="h-4 w-24 bg-gray-300 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
   const [copied, setCopied] = useState(false);
   const [responseCount, setResponseCount] = useState<number | null>(null);
-  const [isFetching, setIsFetching] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analyzeProgress, setAnalyzeProgress] = useState({ current: 0, total: 0 });
   const [img, setImg] = useState("");
+  const { navigateWithTransition } = usePageTransition();
 
   useEffect(() => {
     const fetchInterviewer = async () => {
@@ -33,44 +58,49 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
       setImg(interviewer.image);
     };
     fetchInterviewer();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [interviewerId]);
 
   useEffect(() => {
     const fetchResponses = async () => {
+      setIsLoading(true);
       try {
         const responses = await ResponseService.getAllResponses(id);
         setResponseCount(responses.length);
-        if (responses.length > 0) {
-          setIsFetching(true);
-          for (const response of responses) {
-            if (!response.is_analysed) {
-              try {
-                const result = await axios.post("/api/get-call", {
-                  id: response.call_id,
-                });
-
-                if (result.status !== 200) {
-                  throw new Error(`HTTP error! status: ${result.status}`);
-                }
-              } catch (error) {
-                console.error(
-                  `Failed to call api/get-call for response id ${response.call_id}:`,
-                  error,
-                );
+        setIsLoading(false);
+        
+        // Check for unanalyzed responses
+        const unanalyzed = responses.filter(r => !r.is_analysed);
+        if (unanalyzed.length > 0) {
+          setIsAnalyzing(true);
+          setAnalyzeProgress({ current: 0, total: unanalyzed.length });
+          
+          for (let i = 0; i < unanalyzed.length; i++) {
+            const response = unanalyzed[i];
+            setAnalyzeProgress({ current: i + 1, total: unanalyzed.length });
+            try {
+              const result = await axios.post("/api/get-call", {
+                id: response.call_id,
+              });
+              if (result.status !== 200) {
+                throw new Error(`HTTP error! status: ${result.status}`);
               }
+            } catch (error) {
+              console.error(
+                `Failed to call api/get-call for response id ${response.call_id}:`,
+                error,
+              );
             }
           }
-          setIsFetching(false);
+          setIsAnalyzing(false);
         }
       } catch (error) {
         console.error(error);
+        setIsLoading(false);
       }
     };
 
     fetchResponses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [id]);
 
   const copyToClipboard = () => {
     navigator.clipboard
@@ -97,62 +127,93 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
       );
   };
 
+  // Show skeleton while loading initial data
+  if (isLoading) {
+    return <InterviewCardSkeleton />;
+  }
+
   return (
-    <a
-      href={`/interviews/${id}`}
-      style={{
-        pointerEvents: isFetching ? "none" : "auto",
-        cursor: isFetching ? "default" : "pointer",
+    <div
+      onClick={() => {
+        if (!isAnalyzing) {
+          navigateWithTransition(`/interviews/${id}`);
+        }
       }}
+      style={{
+        pointerEvents: isAnalyzing ? "none" : "auto",
+        cursor: isAnalyzing ? "default" : "pointer",
+      }}
+      className="relative w-[250px] min-w-[200px] max-w-[272px] h-[250px] bg-[#F9F9FA] rounded-[20px] shrink-0 overflow-hidden transition-all duration-300 ease-out hover:shadow-md"
     >
-      <Card className="relative p-0 mt-4 inline-block cursor-pointer h-60 w-56 ml-1 mr-3 rounded-xl shrink-0 overflow-hidden shadow-md transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg">
-        <CardContent className={`p-0 ${isFetching ? "opacity-60" : ""}`}>
-          <div className="w-full h-40 overflow-hidden bg-orange-600 flex items-center text-center">
-            <CardTitle className="w-full mt-3 mx-2 text-white text-lg">
-              {name}
-              {isFetching && (
-                <div className="z-100 mt-[-5px]">
-                  <MiniLoader />
-                </div>
-              )}
-            </CardTitle>
-          </div>
-          <div className="flex flex-row items-center mx-4 ">
-            <div className="w-full overflow-hidden">
-              <Image
-                src={img}
-                alt="Picture of the interviewer"
-                width={70}
-                height={70}
-                className="object-cover object-center"
-              />
-            </div>
-            <div className="text-black text-sm font-semibold mt-2 mr-2 whitespace-nowrap">
-              Responses:{" "}
-              <span className="font-normal">
-                {responseCount?.toString() || 0}
-              </span>
-            </div>
-          </div>
-          <div className="absolute top-2 right-2">
+      {/* Analysis Overlay */}
+      {isAnalyzing && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-[20px]">
+          <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-3" />
+          <p className="text-xs font-medium text-gray-700">Analyzing responses...</p>
+          <p className="text-[10px] text-gray-500 mt-1">
+            {analyzeProgress.current} of {analyzeProgress.total}
+          </p>
+        </div>
+      )}
+
+      <div className="h-full flex flex-col">
+        {/* Title Area */}
+        <div className="relative flex-1 flex items-center justify-center bg-indigo-50/70 m-3 mb-0 rounded-[16px]">
+          <p className="mx-6 text-center text-sm font-semibold text-gray-900">
+            {name}
+          </p>
+
+          {/* Copy Button */}
+          <div className="absolute right-3 top-3">
             <Button
-              className={`text-xs text-orange-600 px-1 h-6  ${
-                copied ? "bg-orange-300 text-white" : ""
+              className={`h-7 w-7 rounded-md p-0 ${
+                copied 
+                  ? "bg-indigo-600 text-white" 
+                  : "bg-white/80 text-gray-600 hover:bg-white"
               }`}
-              variant={"secondary"}
+              variant="ghost"
               onClick={(event) => {
                 event.stopPropagation();
                 event.preventDefault();
                 copyToClipboard();
               }}
             >
-              {copied ? <CopyCheck size={16} /> : <Copy size={16} />}
+              {copied ? <CopyCheck size={14} /> : <Copy size={14} />}
             </Button>
           </div>
-        </CardContent>
-      </Card>
-    </a>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-2">
+            <div className="h-10 w-10 overflow-hidden rounded-full bg-white shadow-sm">
+              {img ? (
+                <Image
+                  src={img}
+                  alt="Picture of the interviewer"
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full bg-gray-200 animate-pulse" />
+              )}
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-700">
+            Responses:{" "}
+            <span className="font-semibold text-gray-900">
+              {responseCount?.toString() || 0}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
+
+// Export skeleton for use in parent components
+export { InterviewCardSkeleton };
 
 export default InterviewCard;
